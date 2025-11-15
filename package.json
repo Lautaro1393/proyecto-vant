@@ -1,0 +1,23 @@
+{
+  "name": "proyecto-vant",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "echo \" -- Hola Bienvenido al DEV de la aplicacion VANT -- \" && nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Lautaro Sarmiento <lautarosarmiento197@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mysql2": "^3.15.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
