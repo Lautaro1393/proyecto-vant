@@ -1,3 +1,7 @@
+import { Router } from "express"; // Desestructuro express para traer solo "ROUTER"
+
+const router = Router(); // instancio
+
 
 // ## 🚁 Drones 
 
@@ -133,3 +137,42 @@ export const drones = [
     piloto_id: 8 // Asignado a Diego Ramírez
   }
 ];
+
+
+// Metodo GET total
+
+router.get('/drones',(req,res)=>{
+    res.json(drones)
+})
+
+
+// GET - search dron
+router.get('/drones/search',(req,res)=>{
+    const {matricula} = req.query;
+    if(!matricula){
+        return res.status(400).json({error: 'el parametro de busqueda - matricula - esta vacio'})
+    }
+    const dronFiltrado = drones.filter((dron)=> dron.matricula.toLowerCase().includes(matricula.toLocaleLowerCase())
+);
+    console.log(req.query);
+    res.json(dronFiltrado)
+})
+
+
+
+
+//Metodo GET por ID
+router.get('/drones/:id_dron', (req,res)=>{
+    const {id_dron} = req.params
+    const dron = drones.find((item) =>  item.id_dron == id_dron);
+    console.log(dron);
+    if(!dron){
+        return res.status(404).json({error: "'Dron no encontrado"});
+    }
+    res.json(dron);
+});
+
+
+
+
+export default router; // lo exporto como Default para poder asignarle cualquier nombre si quisiera

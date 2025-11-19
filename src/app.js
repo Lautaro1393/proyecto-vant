@@ -1,8 +1,11 @@
 import express from'express'
-import { pilotos } from './data/mockdata.js';
+import cors from 'cors' // para solicitudes entre distintos dominios si uso el navegador
 import { drones } from './data/mockdata.js';
 const app = express();
-
+import pilotosRouter from '../src/routes/piloto.router.js' // importo el router
+app.use("/api", pilotosRouter) // le digo que use ese modulo agregandole un prefijo "/api"
+import dronesRouter from '../src/routes/dron.router.js'
+app.use("/api", dronesRouter)
 
 // RAIZ
 app.get('/',(req,res)=> {
@@ -10,47 +13,16 @@ app.get('/',(req,res)=> {
 })
 
 
+
+
+//MiddleWare para usar Cors entre distintos dominios
+app.use(cors());
+
 //middleware para parsear JSON
 app.use(express.json());
 
 
 //////////////////Tabla Pilotos//////////////////////Tabla Pilotos//////////////////////Tabla Pilotos///////////////////////////////////////////
-
-//////////  GET de Tabla Pilotos ////////
-
-app.get('/pilotos',(req,res)=>{
-    res.json(pilotos)
-})
-
-
-
-// GET - search piloto
-app.get('/pilotos/search',(req,res)=>{
-    const {nombre} = req.query;
-    if(!nombre){
-        return res.status(400).json({error: 'el parametro de busqueda nombre esta vacio'})
-    }
-    const pilotoFiltrado = pilotos.filter((piloto)=> piloto.nombre.toLowerCase().includes(nombre.toLocaleLowerCase())
-);
-    console.log(req.query);
-    res.json(pilotoFiltrado)
-})
-
-
-
-//Metodo GET por ID
-app.get('/pilotos/:id_pilotos', (req,res)=>{
-    const {id_pilotos} = req.params
-    const piloto = pilotos.find((item) =>  item.id_pilotos == id_pilotos);
-    
-    //const piloto = pilotos.find((item) => item.id_pilotos == id_pilotos);
-    console.log(piloto);
-    if(!piloto){
-        return res.status(404).json({error: "'Piloto no encontrado"});
-    }
-    res.json(piloto);
-});
-
 
 
 
@@ -122,40 +94,6 @@ app.delete('/pilotos/:id',(req,res)=>{
 
 
 /////////Tabla Drones//////////////////////////////Tabla Drones///////////////////////////Tabla Drones////////////////////////////////////
-
-
-// Metodo GET total
-
-app.get('/drones',(req,res)=>{
-    res.json(drones)
-})
-
-
-// GET - search dron
-app.get('/drones/search',(req,res)=>{
-    const {matricula} = req.query;
-    if(!matricula){
-        return res.status(400).json({error: 'el parametro de busqueda - matricula - esta vacio'})
-    }
-    const dronFiltrado = drones.filter((dron)=> dron.matricula.toLowerCase().includes(matricula.toLocaleLowerCase())
-);
-    console.log(req.query);
-    res.json(dronFiltrado)
-})
-
-
-
-
-//Metodo GET por ID
-app.get('/drones/:id_dron', (req,res)=>{
-    const {id_dron} = req.params
-    const dron = drones.find((item) =>  item.id_dron == id_dron);
-    console.log(dron);
-    if(!dron){
-        return res.status(404).json({error: "'Dron no encontrado"});
-    }
-    res.json(dron);
-});
 
 
 
