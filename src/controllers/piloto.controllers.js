@@ -163,6 +163,11 @@ export const getPilotoByID = (req,res)=>{
 
 export const crearPiloto = (req,res)=>{
     const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body;
+if (!nombre || !apellido || !certificacion || !email || !rol) {
+    return res.status(400).json({Error: 'Faltan datos en el body' })   
+}
+else{
+
     const nuevoPiloto = {
         id_pilotos: pilotos.length +1,
         nombre,
@@ -179,7 +184,8 @@ export const crearPiloto = (req,res)=>{
     console.log(nuevoPiloto)
     console.log(pilotos);
     res.status(201).json(nuevoPiloto)
-   
+    
+}
 };
 
 // metodo PUT

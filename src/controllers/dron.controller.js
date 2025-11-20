@@ -162,6 +162,34 @@ export const dronPorId =   (req,res)=>{
     res.json(dron);
 }
 
+// metodo post //
+
+
+ export const crearDron = (req,res)=>{
+    const { matricula, numero_de_serie, fecha_adquisicion, estado, fecha_mantenimiento, observaciones, imagen, modelo_dron_id, deleted_At, piloto_id } = req.body;
+    if (!matricula || !numero_de_serie) {
+      return res.status(400).json({error: 'Faltan datos en el body para crear el registro'})
+    }
+    else{
+      const nuevoDron ={
+        id_dron: drones.length +1,
+        matricula,
+        numero_de_serie,
+        fecha_adquisicion,
+        estado,
+        fecha_mantenimiento,
+        observaciones,
+        imagen,
+        modelo_dron_id,
+        deleted_At
+      };
+      drones.push(nuevoDron);
+      /* console.log(req.body); */
+      res.status(201).json(nuevoDron);
+    }
+    }
+    
+    
 //// metodo put /////
 
 export const actualizarDron = (req,res)=>{

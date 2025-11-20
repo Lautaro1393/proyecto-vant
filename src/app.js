@@ -34,24 +34,6 @@ app.get('/',(req,res)=> {
 
 // metodo  POST
 
-app.post('/drones',(req,res)=>{
-    const { matricula, numero_de_serie, fecha_adquisicion, estado, fecha_mantenimiento, observaciones, imagen, modelo_dron_id, deleted_At, piloto_id } = req.body
-    const nuevoDron ={
-        id_dron: drones.length +1,
-        matricula,
-        numero_de_serie,
-        fecha_adquisicion,
-        estado,
-        fecha_mantenimiento,
-        observaciones,
-        imagen,
-        modelo_dron_id,
-        deleted_At
-    };
-    drones.push(nuevoDron);
-    /* console.log(req.body); */
-   res.status(201).json(nuevoDron);
-}) 
 
 
 
