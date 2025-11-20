@@ -27,11 +27,6 @@ app.get('/',(req,res)=> {
 
 
 
-//////////////////Tabla Pilotos//////////////////////Tabla Pilotos//////////////////////Tabla Pilotos///////////////////////////////////////////
-
-//////// Rutas Delete ///////
-
-
 
 /////////Tabla Drones//////////////////////////////Tabla Drones///////////////////////////Tabla Drones////////////////////////////////////
 
@@ -57,47 +52,6 @@ app.post('/drones',(req,res)=>{
     /* console.log(req.body); */
    res.status(201).json(nuevoDron);
 }) 
-// METODO PUT
-
-
-app.put('/drones/:id',(req,res)=>{
-    const idDrones = parseInt(req.params.id, 10)
-    const dronIndex = drones.findIndex((item)=> item.id_dron === idDrones);   // para comprar el valor y el tipo 
-    if(dronIndex === -1){
-        return res.status(404).json({error: 'Dron no encontrado'});
-    } 
-    const { matricula, numero_de_serie, fecha_adquisicion,estado, fecha_mantenimiento,observaciones, imagen,modelo_dron_id, deleted_at, piloto_id} = req.body // obteniendo los datos del body 
-    const dronActualizado ={
-        id_dron : idDrones,
-        matricula,
-        numero_de_serie,
-        fecha_adquisicion,
-        estado,
-        fecha_mantenimiento,
-        observaciones,
-        imagen,
-        modelo_dron_id,
-        deleted_at,
-        piloto_id
-    };
-    drones[dronIndex]= dronActualizado;
-    res.json(drones[dronIndex])
-    
-});
-
-
-//////// Rutas Delete ///////
-
-app.delete('/drones/:id',(req,res)=>{
-
-const idDrones = parseInt(req.params.id, 10)
-    const dronIndex = drones.findIndex((item)=> item.id_dron === idDrones);   // para comprar el valor y el tipo 
-    if(dronIndex === -1){
-        return res.status(404).json({error: 'Dron no encontrado'});
-} 
- drones.splice(dronIndex,1); // Elimina el piloto de la lista con splice(indice y cantidad)
- return res.status(204).json({error: 'Dron Eliminado'});
-});
 
 
 
