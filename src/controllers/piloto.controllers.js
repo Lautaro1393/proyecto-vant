@@ -1,4 +1,4 @@
-const pilotos = [
+export const pilotos = [
     {
     id_pilotos: 1,
     nombre: "Laura",
@@ -121,12 +121,16 @@ const pilotos = [
 }
 ];
 
-//////////////////////////////////////////////////////////////////
+///////////////////////  METODO GET  ////////////////////////////////
+
+
+//Trae toda la tabla 
 
 export const getAllPilotos = (req, res) => {
     res.json(pilotos);
     console.log(pilotos)
 }
+// busqueda por nombre del piloto
 
 export const searchPiloto = (req,res)=>{
     const {nombre} = req.query;
@@ -139,6 +143,8 @@ console.log(req.query);
 res.json(pilotoFiltrado)
 };
 
+
+//GET por ID del piloto
 export const getPilotoByID = (req,res)=>{
     const {id_pilotos} = req.params
     const piloto = pilotos.find((item) =>  item.id_pilotos == id_pilotos);
@@ -151,4 +157,70 @@ export const getPilotoByID = (req,res)=>{
         
     }
     res.json(piloto);
+};
+
+//////////////////////////////////////////////// Metodo post
+
+export const crearPiloto = (req,res)=>{
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body;
+    const nuevoPiloto = {
+        id_pilotos: pilotos.length +1,
+        nombre,
+        apellido,
+        dni,
+        certificacion,
+        vencimiento_cma,
+        email,
+        contacto,
+        rol,
+        deleted_At
+    };
+    pilotos.push(nuevoPiloto);
+    console.log(nuevoPiloto)
+    console.log(pilotos);
+    res.status(201).json(nuevoPiloto)
+   
+};
+
+// metodo PUT
+
+export const modificarPiloto=(req,res)=>{
+    const idPiloto = parseInt(req.params.id, 10)
+    const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos == idPiloto);   // para comprar el valor y el tipo 
+    if(pilotoIndex === -1){
+        return res.status(404).json({error: 'Piloto no encontrado'});
+    } 
+    const { nombre, apellido, dni,certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body // obteniendo los datos del body 
+    const pilotoActualizado ={
+        id_pilotos : idPiloto,
+        nombre,
+        apellido,
+        dni,
+        certificacion,
+        vencimiento_cma,
+        email,
+        contacto,
+        rol,
+        deleted_At
+    };
+    pilotos[pilotoIndex]= pilotoActualizado;
+    console.log(`el piloto fue actualizado con exito`, pilotoActualizado)
+    res.json(pilotos[pilotoIndex])
+    
+};
+
+
+
+// metodo delete 
+
+export const borrarPiloto = (req,res)=>{
+    
+    const idPiloto = parseInt(req.params.id, 10)
+    const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos === idPiloto);   // para comprar el valor y el tipo 
+    if(pilotoIndex === -1){
+        return res.status(404).json({error: 'Piloto no encontrado'});
+    } 
+    pilotos.splice(pilotoIndex,1); // Elimina el piloto de la lista con splice(indice y cantidad)
+    console.log('piloto eliminado')
+    return res.status(204).json({error: 'Piloto Eliminado'});
 };
