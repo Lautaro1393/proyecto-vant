@@ -3,7 +3,7 @@ import { Router } from "express"; // Desestructuro express para traer solo "ROUT
 const router = Router(); // instancio
 
 import { borrarPiloto, crearPiloto, getAllPilotos, getPilotoByID, modificarPiloto, searchPiloto } from "../controllers/piloto.controllers.js";
-
+// import { getAllPilotos } from "../services/pilotos.service.js";
 
 
 
