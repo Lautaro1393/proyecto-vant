@@ -41,7 +41,7 @@ export const getPilotoByID = (req,res)=>{
     res.json(piloto);
 };
 
-////////////////////////////////// Metodo post ///////////////
+////////////////////////////////// Crear Piloto ///////////////
   
 export const crearPiloto = (req,res)=>{
     const pilotos = service.getAllPilotos();
@@ -61,7 +61,7 @@ else{
 }
 };
 
-// metodo PUT
+// modificar piloto mediante metodo PUT
 
 export const modificarPiloto=(req,res)=>{
     const pilotos = service.getAllPilotos();

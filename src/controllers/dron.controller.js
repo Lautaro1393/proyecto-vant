@@ -1,160 +1,32 @@
-
-export const drones = [
-  {
-    id_dron: 1,
-    matricula: "VANT-001",
-    numero_de_serie: "M30T-A123",
-    fecha_adquisicion: "2024-01-15",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-01",
-    observaciones: "Sensor térmico calibrado.",
-    imagen: "/uploads/dron_001.jpg",
-    modelo_dron_id: 1,
-    deleted_at: null,
-    piloto_id: 1 // Asignado a Laura García
-  },
-  {
-    id_dron: 2,
-    matricula: "VANT-002",
-    numero_de_serie: "M3T-B456",
-    fecha_adquisicion: "2024-03-20",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-09-15",
-    observaciones: "Hélices nuevas.",
-    imagen: "/uploads/dron_002.jpg",
-    modelo_dron_id: 2,
-    deleted_at: null,
-    piloto_id: 2 // Asignado a Carlos Rodríguez
-  },
-  {
-    id_dron: 3,
-    matricula: "VANT-003",
-    numero_de_serie: "M30T-C789",
-    fecha_adquisicion: "2024-01-15",
-    estado: "En Mantenimiento",
-    fecha_mantenimiento: "2025-11-10",
-    observaciones: "Fallo en gimbal. Revisar.",
-    imagen: "/uploads/dron_003.jpg",
-    modelo_dron_id: 1,
-    deleted_at: null,
-    piloto_id: null // Sin asignar
-  },
-  {
-    id_dron: 4,
-    matricula: "VANT-004",
-    numero_de_serie: "M3T-D101",
-    fecha_adquisicion: "2024-06-05",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-05",
-    observaciones: "Batería #3 reporta fallos.",
-    imagen: "/uploads/dron_004.jpg",
-    modelo_dron_id: 2,
-    deleted_at: null,
-    piloto_id: 3 // Asignado a Ana Martínez
-  },
-  {
-    id_dron: 5,
-    matricula: "VANT-005",
-    numero_de_serie: "M30T-E112",
-    fecha_adquisicion: "2024-05-10",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-20",
-    observaciones: "Todo OK.",
-    imagen: "/uploads/dron_005.jpg",
-    modelo_dron_id: 1,
-    deleted_at: null,
-    piloto_id: 6 // Asignado a Martín Pérez
-  },
-  {
-    id_dron: 6,
-    matricula: "VANT-006",
-    numero_de_serie: "M3T-F131",
-    fecha_adquisicion: "2024-06-05",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-05",
-    observaciones: "Sensor RGB OK.",
-    imagen: "/uploads/dron_006.jpg",
-    modelo_dron_id: 2,
-    deleted_at: null,
-    piloto_id: null // Sin asignar
-  },
-  {
-    id_dron: 7,
-    matricula: "VANT-007",
-    numero_de_serie: "M30T-G141",
-    fecha_adquisicion: "2024-08-01",
-    estado: "Fuera de Servicio",
-    fecha_mantenimiento: "2025-05-01",
-    observaciones: "Daño por agua. No reparar.",
-    imagen: "/uploads/dron_007.jpg",
-    modelo_dron_id: 1,
-    deleted_at: "2025-05-02T14:30:00Z", // <-- Ejemplo de borrado lógico
-    piloto_id: null
-  },
-  {
-    id_dron: 8,
-    matricula: "VANT-008",
-    numero_de_serie: "M3T-H151",
-    fecha_adquisicion: "2024-09-10",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-15",
-    observaciones: "Altavoz OK.",
-    imagen: "/uploads/dron_008.jpg",
-    modelo_dron_id: 2,
-    deleted_at: null,
-    piloto_id: 7 // Asignado a Valentina Sánchez
-  },
-  {
-    id_dron: 9,
-    matricula: "VANT-009",
-    numero_de_serie: "M30T-I161",
-    fecha_adquisicion: "2024-08-01",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-01",
-    observaciones: "Faro OK.",
-    imagen: "/uploads/dron_009.jpg",
-    modelo_dron_id: 1,
-    deleted_at: null,
-    piloto_id: null // Sin asignar
-  },
-  {
-    id_dron: 10,
-    matricula: "VANT-010",
-    numero_de_serie: "M3T-J171",
-    fecha_adquisicion: "2024-09-10",
-    estado: "En Servicio",
-    fecha_mantenimiento: "2025-10-15",
-    observaciones: "RTK OK.",
-    imagen: "/uploads/dron_010.jpg",
-    modelo_dron_id: 2,
-    deleted_at: null,
-    piloto_id: 8 // Asignado a Diego Ramírez
-  }
-];
-
+import * as service from '../services/dron.service.js'
 //metodos http
 
 // GET de toda la tabla
 
 export const getAllDrones = (req,res)=>{
-    res.json(drones)
+    res.json(service.getAllDrones());
+    console.log(service.getAllDrones())
 }
+/////// Search por matricula ////////////////
 
-
-export const dronSearch =(req,res)=>{
+export const searchDron =(req,res)=>{
     const {matricula} = req.query;
     if(!matricula){
         return res.status(400).json({error: 'el parametro de busqueda - matricula - esta vacio'})
     }
+    const drones = service.getAllDrones();
     const dronFiltrado = drones.filter((dron)=> dron.matricula.toLowerCase().includes(matricula.toLocaleLowerCase())
 );
     console.log(req.query);
     res.json(dronFiltrado)
 }
+//////////// Get Por ID /////////////
 
-export const dronPorId =   (req,res)=>{
+
+export const dronPorId  =   (req,res)=>{
     const {id_dron} = req.params
-    const dron = drones.find((item) =>  item.id_dron == id_dron);
+    const dron = service.getDronByID(id_dron);
+    // const dron = drones.find((item) =>  item.id_dron == id_dron);
     console.log(dron);
     if(!dron){
         return res.status(404).json({error: "'Dron no encontrado"});
@@ -162,17 +34,20 @@ export const dronPorId =   (req,res)=>{
     res.json(dron);
 }
 
-// metodo post //
+
+
+
+// Crear Dron  //
 
 
  export const crearDron = (req,res)=>{
+    const drones = service.getAllDrones();
     const { matricula, numero_de_serie, fecha_adquisicion, estado, fecha_mantenimiento, observaciones, imagen, modelo_dron_id, deleted_At, piloto_id } = req.body;
     if (!matricula || !numero_de_serie) {
       return res.status(400).json({error: 'Faltan datos en el body para crear el registro'})
     }
     else{
-      const nuevoDron ={
-        id_dron: drones.length +1,
+      const nuevoDron = service.crearDron(
         matricula,
         numero_de_serie,
         fecha_adquisicion,
@@ -181,26 +56,29 @@ export const dronPorId =   (req,res)=>{
         observaciones,
         imagen,
         modelo_dron_id,
-        deleted_At
-      };
+        deleted_At,
+        piloto_id)
+      ;
       drones.push(nuevoDron);
       /* console.log(req.body); */
       res.status(201).json(nuevoDron);
     }
-    }
+    };
     
     
-//// metodo put /////
+//// modificar Dron por metodo put /////
 
 export const actualizarDron = (req,res)=>{
-    const idDrones = parseInt(req.params.id, 10)
-    const dronIndex = drones.findIndex((item)=> item.id_dron === idDrones);   // para comprar el valor y el tipo 
+    const drones = service.getAllDrones();
+    const idDron = parseInt(req.params.id, 10)
+    const dronIndex = service.actualizarDron(idDron);
+    // const dronIndex = drones.findIndex((item)=> item.id_dron === idDron);   // para comprar el valor y el tipo 
     if(dronIndex === -1){
         return res.status(404).json({error: 'Dron no encontrado'});
     } 
     const { matricula, numero_de_serie, fecha_adquisicion,estado, fecha_mantenimiento,observaciones, imagen,modelo_dron_id, deleted_at, piloto_id} = req.body // obteniendo los datos del body 
     const dronActualizado ={
-        id_dron : idDrones,
+        id_dron : idDron,
         matricula,
         numero_de_serie,
         fecha_adquisicion,
@@ -221,13 +99,14 @@ export const actualizarDron = (req,res)=>{
 // METODO DELETE
 
 export const borrarDron = (req,res)=>{
-
-const idDrones = parseInt(req.params.id, 10)
-    const dronIndex = drones.findIndex((item)=> item.id_dron === idDrones);   // para comprar el valor y el tipo 
-    if(dronIndex === -1){
+const idDron = parseInt(req.params.id, 10)
+const dronBorrado = service.borrarDron(idDron);
+console.log(dronBorrado)
+    // const dronIndex = drones.findIndex((item)=> item.id_dron === idDron);   // para comprar el valor y el tipo 
+    if(dronBorrado === -1){
         return res.status(404).json({error: 'Dron no encontrado'});
 } 
- drones.splice(dronIndex,1); // Elimina el piloto de la lista con splice(indice y cantidad)
- console.log('dron eliminado correctamente')
- return res.status(204).json({error: 'Dron Eliminado'});
+console.log('dron borrado correctamente', dronBorrado)
+//  drones.splice(dronIndex,1); // Elimina el piloto de la lista con splice(indice y cantidad)
+return res.status(204).json({error: 'Dron Eliminado'});
 }

@@ -1,7 +1,7 @@
 import { Router } from "express"; // Desestructuro express para traer solo "ROUTER"
-import { dronSearch, dronPorId, getAllDrones, actualizarDron, borrarDron, crearDron } from "../controllers/dron.controller.js";
-
 const router = Router(); // instancio
+import { searchDron, dronPorId, getAllDrones, actualizarDron, borrarDron, crearDron } from "../controllers/dron.controller.js";
+
 
 
 // ## 🚁 Drones 
@@ -12,7 +12,7 @@ const router = Router(); // instancio
 router.get('/drones', getAllDrones)
 
 // GET - search dron
-router.get('/drones/search', dronSearch)
+router.get('/drones/search', searchDron)
 
 //Metodo GET por ID
 router.get('/drones/:id_dron', dronPorId);
