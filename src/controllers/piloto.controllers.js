@@ -1,5 +1,6 @@
 // import { getAllPilotos } from "../services/pilotos.service.js"; 
 import * as service from '../services/pilotos.service.js'
+import * as model from '../models/pilotos.model.js'
 
 ///////////////////////  METODO GET  ////////////////////////////////
 
@@ -41,24 +42,35 @@ export const getPilotoByID = (req,res)=>{
     res.json(piloto);
 };
 
-////////////////////////////////// Crear Piloto ///////////////
-  
-export const crearPiloto = (req,res)=>{
-    const pilotos = service.getAllPilotos();
-    console.log(pilotos)
-    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body;
-if (!nombre || !apellido || !certificacion || !email || !rol) {
-    return res.status(400).json({Error: 'Faltan datos en el body' })   
-}
-else{
+////////////// Crear Piloto ///////////////
 
-    const nuevoPiloto = service.crearPiloto(nombre,apellido,dni,certificacion,vencimiento_cma,email,contacto,rol,deleted_At);
-    pilotos.push(nuevoPiloto);
-    console.log(nuevoPiloto)
-    console.log(pilotos);
-    res.status(201).json(nuevoPiloto)
+
+export const crearPiloto = (req, res)=>{
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body; // DESESTRUCTURACION de objetos
+
+    // 1. VALIDACIÓN: Revisar si faltan campos OBLIGATORIOS.
+    if (!nombre || !apellido || !certificacion || !email || !rol) {
+        // Si falta algún dato, se devuelve el error y el 'return' finaliza la función aquí.
+        return res.status(400).json({Error: 'Faltan datos en el body'}); 
+    }
     
-}
+    // 2. LÓGICA DE NEGOCIO (Solo si la validación es exitosa)
+    // Ahora, si los datos son válidos, llamamos al modelo para crear y guardar el registro.
+    const nuevoPiloto = model.crearPiloto ({
+        nombre, 
+        apellido, 
+        dni, 
+        certificacion,
+        vencimiento_cma, 
+        email, 
+        contacto, 
+        rol, 
+        deleted_At
+    });
+
+    // 3. RESPUESTA EXITOSA (Solo si se creó el registro)
+    console.log(nuevoPiloto);
+    res.status(201).json (nuevoPiloto);
 };
 
 // modificar piloto mediante metodo PUT
@@ -94,7 +106,22 @@ export const modificarPiloto=(req,res)=>{
 
 // metodo delete  ///////////
 
-export const borrarPiloto = (req,res)=>{
+export const borrarPiloto = (req,res) => {
+const idPiloto = parseInt(req.params.id, 10);
+// console.log(idPiloto, "este es el id que paso en la peticion");
+const piloto = model.borrarPiloto(idPiloto);
+if (!piloto) {
+    return res.status(404).json({error: 'Piloto no encontrado'});
+
+}
+res.status(204).send({mensaje: 'Producto eliminado'})
+console.log(`producto con id ${idPiloto} ha sido eliminado`)
+}
+
+
+
+
+/* export const borrarPiloto = (req,res)=>{
     
     const idPiloto = parseInt(req.params.id, 10) // obtengo el id del piloto y lo convierto en un entero de base 10
     console.log(idPiloto)
@@ -109,3 +136,4 @@ export const borrarPiloto = (req,res)=>{
         productoEliminado: pilotoBorrado
     });
 };
+ */
