@@ -5,7 +5,7 @@ const __dirname = import.meta.dirname;
 const pathArchivo =  path.join(__dirname, './pilotos.json');
 const json = fs.readFileSync(pathArchivo, "utf-8");
 const pilotos = JSON.parse(json);
-console.log(pilotos);
+// console.log(pilotos);
 
 ////////////////////////////////////////
 
@@ -52,4 +52,20 @@ export const borrarPiloto = (id_pilotos) => {
         fs.writeFileSync(pathArchivo, JSON.stringify(pilotos, null, 2), "utf-8");
         return pilotoBorrado;
     }
+}
+
+/////////////////// Actualizar Piloto //////////////////////
+
+export const actualizarPiloto = (id_pilotos, data) => {
+    const pilotoIndex = pilotos.findIndex((item) => item.id_pilotos == id_pilotos); // buscamos el indice del piloto a actualizar
+    if (pilotoIndex === -1) {
+        return null;
+    }
+    const pilotoActualizado = {
+        id_pilotos : id_pilotos, // mantenemos el mismo ID
+        ...data // nombre, apellido , dni, etc
+    };
+    pilotos[pilotoIndex] = pilotoActualizado;
+    fs.writeFileSync(pathArchivo, JSON.stringify(pilotos, null, 2), "utf-8"); // guardamos el array actualizado en el archivo JSON
+    return pilotoActualizado; // devolvemos el piloto actualizado
 }

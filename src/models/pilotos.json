@@ -109,7 +109,7 @@
   },
   {
     "id_pilotos": 10,
-    "nombre": "lukitas",
+    "nombre": "Lucas el mejor",
     "apellido": "Fernández",
     "dni": 34789012,
     "certificacion": "A-67890",
@@ -118,16 +118,5 @@
     "contacto": 1199118822,
     "rol": "Usuario",
     "deleted_at": null
-  },
-  {
-    "id_pilotos": 11,
-    "nombre": "pepito el mejor",
-    "apellido": "iturriaga",
-    "dni": 3854619,
-    "certificacion": "Ala Rotativa Clase B",
-    "vencimiento_cma": "2027-07-07",
-    "email": "pepito@vant.com",
-    "contacto": 1189264863,
-    "rol": "Usuario"
   }
 ]

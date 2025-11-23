@@ -2,7 +2,7 @@ import express from'express'
 import cors from 'cors' // para solicitudes entre distintos dominios si uso el navegador
 import pilotosRouter from '../src/routes/piloto.router.js' // importo el router
 import dronesRouter from '../src/routes/dron.router.js'
-/* import { drones } from './data/mockdata.js'; */
+
 
 
 

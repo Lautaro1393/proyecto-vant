@@ -1,5 +1,5 @@
 // import { getAllPilotos } from "../services/pilotos.service.js"; 
-import * as service from '../services/pilotos.service.js'
+// import * as service from '../services/pilotos.service.js'
 import * as model from '../models/pilotos.model.js'
 
 ///////////////////////  METODO GET  ////////////////////////////////
@@ -8,8 +8,8 @@ import * as model from '../models/pilotos.model.js'
 //Trae toda la tabla 
 
 export const getAllPilotos = (req, res) => {
-    res.json(service.getAllPilotos());
-    console.log(service.getAllPilotos())
+    res.json(model.getAllPilotos());
+    console.log(model.getAllPilotos())
 }
 //SEARCH  busqueda por nombre del piloto/////////////////
 
@@ -18,7 +18,7 @@ export const searchPiloto = (req,res)=>{
     if(!nombre){
         return res.status(400).json({error: 'el parametro de busqueda nombre esta vacio'})
     }
-    const pilotos = service.getAllPilotos();
+    const pilotos = model.getAllPilotos();
     const pilotoFiltrado = pilotos.filter((piloto)=> piloto.nombre.toLowerCase().includes(nombre.toLocaleLowerCase())
 );
 console.log(req.query);
@@ -31,7 +31,7 @@ res.json(pilotoFiltrado)
 export const getPilotoByID = (req,res)=>{
     const {id_pilotos} = req.params
     // const piloto = pilotos.find((item) =>  item.id_pilotos == id_pilotos);
-    const piloto = service.getPilotoByID(id_pilotos);
+    const piloto = model.getPilotoByID(id_pilotos);
     
     console.log(piloto);
     if(!piloto){
@@ -74,12 +74,12 @@ export const crearPiloto = (req, res)=>{
 };
 
 // modificar piloto mediante metodo PUT
-
+/* 
 export const modificarPiloto=(req,res)=>{
-    const pilotos = service.getAllPilotos();
+    const pilotos = model.getAllPilotos();
     const idPiloto = parseInt(req.params.id, 10);
     // const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos == idPiloto);   
-    const pilotoIndex = service.actualizarPiloto(idPiloto);
+    const pilotoIndex = model.actualizarPiloto(idPiloto);
     if(pilotoIndex === -1){
         return res.status(404).json({error: 'Piloto no encontrado'});
     } 
@@ -101,8 +101,7 @@ export const modificarPiloto=(req,res)=>{
     res.json(pilotos[pilotoIndex])
     
 };
-
-
+ */
 
 // metodo delete  ///////////
 
@@ -115,25 +114,31 @@ if (!piloto) {
 
 }
 res.status(204).send({mensaje: 'Producto eliminado'})
-console.log(`producto con id ${idPiloto} ha sido eliminado`)
+console.log(`piloto con id ${idPiloto} ha sido eliminado`)
 }
 
 
+//////////// Modificar Piloto  PUT ///////////////
 
-
-/* export const borrarPiloto = (req,res)=>{
-    
-    const idPiloto = parseInt(req.params.id, 10) // obtengo el id del piloto y lo convierto en un entero de base 10
+export const modificarPiloto = (req,res) => {
+    const idPiloto = parseInt(req.params.id, 10);
     console.log(idPiloto)
-    // const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos === idPiloto);   // para comprar el valor y el tipo 
-    const pilotoBorrado = service.borrarPiloto(idPiloto)
-    console.log(pilotoBorrado)
-    if(pilotoBorrado === -1){
+    const { nombre, apellido, dni,certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body;
+    const actualizarPiloto = model.getPilotoByID(idPiloto);
+    if (!actualizarPiloto) {
         return res.status(404).json({error: 'Piloto no encontrado'});
-    } 
-    console.log('piloto eliminado mediante DELETE', pilotoBorrado);
-    return res.status(204).json({mensaje: 'Piloto Eliminado mediante DELETE',
-        productoEliminado: pilotoBorrado
-    });
-};
- */
+    }
+    actualizarPiloto.nombre = nombre !== undefined ? nombre : actualizarPiloto.name;
+    actualizarPiloto.apellido = apellido !== undefined ? apellido : actualizarPiloto.apellido;
+    actualizarPiloto.dni = dni !== undefined ? dni : actualizarPiloto.dni;
+    actualizarPiloto.certificacion !== undefined ? certificacion : actualizarPiloto.certificacion;
+    actualizarPiloto.vencimiento_cma !== undefined ? vencimiento_cma : actualizarPiloto.vencimiento_cma;
+    actualizarPiloto.email = email !== undefined ? email : actualizarPiloto.email;
+    actualizarPiloto.contacto = contacto !== undefined ? contacto : actualizarPiloto.contacto;
+    actualizarPiloto.rol = rol !== undefined ? rol : actualizarPiloto.rol;
+    actualizarPiloto.deleted_At = deleted_At !== undefined ? deleted_At : actualizarPiloto.deleted_At;
+    const pilotoActualizado = model.actualizarPiloto(idPiloto, actualizarPiloto);
+    res.json(actualizarPiloto);
+    console.log(`piloto con ID ${idPiloto} actualizado`);
+    console.log(pilotoActualizado)
+}
