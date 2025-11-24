@@ -1,36 +1,22 @@
-import { Router } from "express"; // Desestructuro express para traer solo "ROUTER"
-const router = Router(); // instancio
-import { searchDron, dronPorId, getAllDrones, actualizarDron, borrarDron, crearDron } from "../controllers/dron.controller.js";
+import { Router } from "express";
+// Importamos los controladores NUEVOS
+import { getAllDrones, getDronById, crearDron, actualizarDron, borrarDron } from "../controllers/dron.controller.js";
+// Importamos los middlewares de seguridad
+import { verificarToken, verificarAdmin } from "../middlewares/auth.middleware.js";
 
+const router = Router();
 
+// Rutas Públicas (Cualquiera puede ver, o puedes ponerle verificarToken si quieres que sea privado)
+router.get('/drones', getAllDrones);
+router.get('/drones/:id', getDronById);
 
-// ## 🚁 Drones 
+// Rutas Protegidas (Solo Admin puede modificar la flota)
+router.post('/drones', verificarToken, verificarAdmin, crearDron);
 
+router.put('/drones/:id',  verificarToken, verificarAdmin,
+ actualizarDron);
 
-// Metodo GET total
+router.delete('/drones/:id',  verificarToken, verificarAdmin,
+ borrarDron);
 
-router.get('/drones', getAllDrones)
-
-// GET - search dron
-router.get('/drones/search', searchDron)
-
-//Metodo GET por ID
-router.get('/drones/:id_dron', dronPorId);
-
-/// RUTA POST
-
-router.post('/drones', crearDron)
-
-// RUTA PUT
-
-
-router.put('/drones/:id', actualizarDron);
-
-
-//////// Rutas Delete ///////
-
-router.delete('/drones/:id', borrarDron);
-
-
-
-export default router; // lo exporto como Default para poder asignarle cualquier nombre si quisiera
+export default router;
