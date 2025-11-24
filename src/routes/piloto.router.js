@@ -1,8 +1,9 @@
 import { Router } from "express"; // Desestructuro express para traer solo "ROUTER"
+import { verificarToken } from "../middlewares/auth.middleware.js";
 
 const router = Router(); // instancio
 
-import {  getAllPilotos, getPilotoByID, searchPiloto, crearPiloto } from "../controllers/piloto.controllers.js";
+import {  getAllPilotos, getPilotoByID, searchPiloto, crearPiloto ,borrarPiloto, modificarPiloto} from "../controllers/piloto.controllers.js";
 // import { getAllPilotos } from "../services/pilotos.service.js";
 
 
@@ -29,12 +30,12 @@ router.post('/pilotos', crearPiloto);
 
 
 ///// metodo put ////
-// router.put('/pilotos/:id', modificarPiloto);
+router.put('/pilotos/:id', verificarToken,modificarPiloto);
 
 
 // metodo delete
 
-// router.delete('/pilotos/:id', borrarPiloto);
+ router.delete('/pilotos/:id', verificarToken,borrarPiloto);
 
 
 export default router; // lo exporto como Default para poder asignarle cualquier nombre si quisiera

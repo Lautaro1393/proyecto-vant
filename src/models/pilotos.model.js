@@ -33,3 +33,37 @@ export const crearPiloto = async (data)=> {
     // Devolvemos el objeto creado (OJO la pass ya viene hasheada del controller)
     return {id_pilotos: result.insertId, ...data}
 }
+// DELETE: borrar un piloto por ID
+export const borrarPiloto = async (id) => {
+    // Ejecutamos la sentencia DELETE
+    const [result] = await pool.query('DELETE FROM piloto WHERE id_pilotos = ?', [id]);
+    // Devolvemos el objeto 'result'. 
+    // Este objeto tiene una propiedad clave llamada 'affectedRows' (filas afectadas).
+    // Si affectedRows es 0, significa que no borró nada (el ID no existía).
+    // Si es 1, significa que lo borró.
+    return result;
+}
+// UPDATE: Modificar datos de un piloto (Perfil)
+export const modificarPiloto = async (id, data) => {
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = data;
+
+    const query = `
+        UPDATE piloto 
+        SET nombre = ?, 
+            apellido = ?, 
+            dni = ?, 
+            certificacion = ?, 
+            vencimiento_cma = ?, 
+            email = ?, 
+            contacto = ?, 
+            rol = ?
+        WHERE id_pilotos = ?
+    `;
+
+    // Pasamos el ID al final porque es el último signo de pregunta (?) en el WHERE
+    const [result] = await pool.query(query, [
+        nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, id
+    ]);
+
+    return result;
+}

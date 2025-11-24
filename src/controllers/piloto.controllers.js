@@ -89,5 +89,50 @@ export const crearPiloto = async (req, res) => {
         }
         res.status(500).json({error:'Error al crear el piloto'});
     }
+}
 
+///////////////// BORRAR PILOTO (DELETE) /////////////
+export const borrarPiloto = async (req, res)=>{
+    const {id} = req.params
+    try {
+        const resultado = await model.borrarPiloto(id);
+
+        //verificamos si realmente se borro algo
+        if (resultado.affectedRows === 0){
+            return res.status(404).json({error: "No se encontro el piloto"})
+        }
+
+        console.log(`[DELETE] - piloto con ID ${id} eliminado`);
+        res.status(200).json({message:'Piloto eliminado correctamente'});
+    } catch(error){
+        console.error(error);
+        res.status(500).json({error: 'Error al eliminar el piloto'})
+    }
+};
+
+///////////// MODIFICAR PILOTO (PUT) ////////////////
+
+export const modificarPiloto = async (req,res) => {
+    const {id} = req.params;
+    // Obtenemos los datos del body (sin password)
+   const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = req.body; 
+   try {
+    // Llamamos al modelo
+    const result = await model.modificarPiloto(id, {nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol});
+
+    // Verificamos si se toco alguna fila
+    if (result.affectedRows === 0){
+        return res.status(404).json({error:"Piloto no encontrado"})
+    }
+
+    // Armamos el objeto de respuesta
+    const pilotoActualizado = {id_pilotos: id, ...req.body};
+
+    console.log(`[PUT] Piloto con ID ${id} actualizado`);
+    res.json({message: "Piloto actualizado correctamente", piloto:pilotoActualizado});
+
+   } catch(error){
+    console.error(error);
+    res.status(500).json({error: 'Error al actualizar el piloto'})
+   }
 }
