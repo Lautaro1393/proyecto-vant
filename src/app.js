@@ -2,6 +2,7 @@ import express from'express'
 import cors from 'cors' // para solicitudes entre distintos dominios si uso el navegador
 import pilotosRouter from '../src/routes/piloto.router.js' // importo el router
 import dronesRouter from '../src/routes/dron.router.js'
+import authRouter from '../src/routes/auth.routes.js'
 
 
 
@@ -14,7 +15,7 @@ app.use(cors());
 //middleware para parsear JSON
 app.use(express.json());
 
-
+app.use("/auth", authRouter)
 app.use("/api", pilotosRouter) // le digo que use ese modulo agregandole un prefijo "/api"
 app.use("/api", dronesRouter)
 

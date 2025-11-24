@@ -1,71 +1,35 @@
-import fs from 'fs';
-import path from 'path';
+import {pool} from '../config/database.js'
 
-const __dirname = import.meta.dirname;
-const pathArchivo =  path.join(__dirname, './pilotos.json');
-const json = fs.readFileSync(pathArchivo, "utf-8");
-const pilotos = JSON.parse(json);
-// console.log(pilotos);
+//get all
 
-////////////////////////////////////////
-
-export const getAllPilotos =() => {
-    return pilotos
+export const getAllPilotos= async() =>{
+    const [rows] = await pool.query('select * from piloto');
+    return rows
 }
 
-export const getPilotoByID = (id_pilotos) => {
-    return pilotos.find((item) =>  item.id_pilotos == id_pilotos)
+// GET BY ID: Buscar uno solo por su ID
+export const getPilotoByID = async (id) => {
+    // Usamos '?' para evitar inyecciones SQL (seguridad básica)
+    const [rows] = await pool.query('SELECT * FROM piloto WHERE id_pilotos = ?', [id]);
+    return rows[0]; // Retorna el primer resultado o undefined
 }
 
-
-//////////////////// Crear nuevo piloto //////////////////////
-
-export const crearPiloto = (data) => {    
-     const nuevoPiloto = {
-        id_pilotos: pilotos.length +1,
-        ...data
-    /*     nombre, 
-        apellido,
-         dni,
-          certificacion,
-           vencimiento_cma,
-            email,
-             contacto,
-              rol,
-               deleted_At */
-
-     };
-     pilotos.push(nuevoPiloto);
-     fs.writeFileSync(pathArchivo, JSON.stringify(pilotos, null, 2), 'utf-8');
-     return nuevoPiloto
-};
-
-///////////////// Borrar Piloto ////////////////////
-
-export const borrarPiloto = (id_pilotos) => {
-    const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos == id_pilotos);
-    if (pilotoIndex === -1) {
-        return null; // si no se encuentra el piloto devolvemos null
-    }
-    else{
-        const pilotoBorrado = pilotos.splice(pilotoIndex,1)[0]; 
-        fs.writeFileSync(pathArchivo, JSON.stringify(pilotos, null, 2), "utf-8");
-        return pilotoBorrado;
-    }
+// SEARCH: Buscar por nombre (Mejorado con SQL)
+export const searchPiloto = async (termino) => {
+    // ILIKE no existe en MySQL estándar, usamos LIKE. 
+    // Los signos % significan "cualquier texto antes o después".
+    const [rows] = await pool.query('SELECT * FROM piloto WHERE nombre LIKE ?', [`%${termino}%`]);
+    return rows;
 }
 
-/////////////////// Actualizar Piloto //////////////////////
-
-export const actualizarPiloto = (id_pilotos, data) => {
-    const pilotoIndex = pilotos.findIndex((item) => item.id_pilotos == id_pilotos); // buscamos el indice del piloto a actualizar
-    if (pilotoIndex === -1) {
-        return null;
-    }
-    const pilotoActualizado = {
-        id_pilotos : id_pilotos, // mantenemos el mismo ID
-        ...data // nombre, apellido , dni, etc
-    };
-    pilotos[pilotoIndex] = pilotoActualizado;
-    fs.writeFileSync(pathArchivo, JSON.stringify(pilotos, null, 2), "utf-8"); // guardamos el array actualizado en el archivo JSON
-    return pilotoActualizado; // devolvemos el piloto actualizado
+// CREATE: Crear Piloto
+export const crearPiloto = async (data)=> {
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = data;
+    // Ejecutamos el INSERT
+    const [result] = await pool.query(
+        'INSERT INTO piloto (nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol]
+    );
+    // Devolvemos el objeto creado (OJO la pass ya viene hasheada del controller)
+    return {id_pilotos: result.insertId, ...data}
 }

@@ -1,144 +1,93 @@
 // import { getAllPilotos } from "../services/pilotos.service.js"; 
 // import * as service from '../services/pilotos.service.js'
 import * as model from '../models/pilotos.model.js'
+import bcrypt from 'bcrypt'
+
+
+
 
 ///////////////////////  METODO GET  ////////////////////////////////
+//Trae toda la tabla de pilotos
 
-
-//Trae toda la tabla 
-
-export const getAllPilotos = (req, res) => {
-    res.json(model.getAllPilotos());
-    console.log(model.getAllPilotos())
+export const getAllPilotos = async (req, res) => {
+    try{
+        const pilotos = await model.getAllPilotos();
+        res.json(pilotos)
+    } catch(error) {
+        console.error(error);
+        res.status(500).json({error: 'Error al obtener pilotos de la BD'})
+    }   
 }
-//SEARCH  busqueda por nombre del piloto/////////////////
+// ////////// GET SEARCH (Búsqueda por nombre) //////////
 
-export const searchPiloto = (req,res)=>{
-    const {nombre} = req.query;
-    if(!nombre){
-        return res.status(400).json({error: 'el parametro de busqueda nombre esta vacio'})
+export const searchPiloto = async (req, res) => {
+    const { nombre } = req.query; // Viene de la URL ?nombre=Lautaro
+    if (!nombre) {
+        return res.status(400).json({ error: 'El parámetro de búsqueda "nombre" está vacío' });
     }
-    const pilotos = model.getAllPilotos();
-    const pilotoFiltrado = pilotos.filter((piloto)=> piloto.nombre.toLowerCase().includes(nombre.toLocaleLowerCase())
-);
-console.log(req.query);
-res.json(pilotoFiltrado)
-};
-
-
-//GET por ID del piloto//////////////////
-
-export const getPilotoByID = (req,res)=>{
-    const {id_pilotos} = req.params
-    // const piloto = pilotos.find((item) =>  item.id_pilotos == id_pilotos);
-    const piloto = model.getPilotoByID(id_pilotos);
-    
-    console.log(piloto);
-    if(!piloto){
-        console.log('Error 404: Piloto no encotrado')
-        return res.status(404).json({error: "'Piloto no encontrado"});
+    try {
+        const pilotos = await model.searchPiloto(nombre);
         
+        // Opcional: Si no encuentra nada, avisar con status 200 
+        if (pilotos.length === 0) {
+            return res.status(200).json({ message: 'No se encontraron pilotos con ese nombre' });
+        }
+        res.json(pilotos);
+    } catch (error) {
+        console.error(error); // Importante para Railway
+        res.status(500).json({ error: 'Error al buscar el piloto' });
     }
-    res.json(piloto);
 };
 
-////////////// Crear Piloto ///////////////
+// ////////// GET BY ID //////////
 
+export const getPilotoByID = async (req, res) => {
+    const { id_pilotos } = req.params; // Viene de la URL /pilotos/1
 
-export const crearPiloto = (req, res)=>{
-    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body; // DESESTRUCTURACION de objetos
+    try {
+        const piloto = await model.getPilotoByID(id_pilotos);
 
-    // 1. VALIDACIÓN: Revisar si faltan campos OBLIGATORIOS.
-    if (!nombre || !apellido || !certificacion || !email || !rol) {
-        // Si falta algún dato, se devuelve el error y el 'return' finaliza la función aquí.
-        return res.status(400).json({Error: 'Faltan datos en el body'}); 
+        if (!piloto) {
+            return res.status(404).json({ error: 'Piloto no encontrado' });
+        }
+
+        res.json(piloto);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error interno al obtener el piloto' });
     }
-    
-    // 2. LÓGICA DE NEGOCIO (Solo si la validación es exitosa)
-    // Ahora, si los datos son válidos, llamamos al modelo para crear y guardar el registro.
-    const nuevoPiloto = model.crearPiloto ({
-        nombre, 
-        apellido, 
-        dni, 
-        certificacion,
-        vencimiento_cma, 
-        email, 
-        contacto, 
-        rol, 
-        deleted_At
-    });
-
-    // 3. RESPUESTA EXITOSA (Solo si se creó el registro)
-    console.log(nuevoPiloto);
-    res.status(201).json (nuevoPiloto);
 };
 
-// modificar piloto mediante metodo PUT
-/* 
-export const modificarPiloto=(req,res)=>{
-    const pilotos = model.getAllPilotos();
-    const idPiloto = parseInt(req.params.id, 10);
-    // const pilotoIndex = pilotos.findIndex((item)=> item.id_pilotos == idPiloto);   
-    const pilotoIndex = model.actualizarPiloto(idPiloto);
-    if(pilotoIndex === -1){
-        return res.status(404).json({error: 'Piloto no encontrado'});
-    } 
-    const { nombre, apellido, dni,certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body // obteniendo los datos del body 
-    const pilotoActualizado ={
-        id_pilotos : idPiloto,
-        nombre,
-        apellido,
-        dni,
-        certificacion,
-        vencimiento_cma,
-        email,
-        contacto,
-        rol,
-        deleted_At
-    };
-    pilotos[pilotoIndex]= pilotoActualizado;
-    console.log(`el piloto fue actualizado con exito`, pilotoActualizado)
-    res.json(pilotos[pilotoIndex])
-    
-};
- */
+//////////////// CREAR PILOTO (POST) //////////////
 
-// metodo delete  ///////////
-
-export const borrarPiloto = (req,res) => {
-const idPiloto = parseInt(req.params.id, 10);
-// console.log(idPiloto, "este es el id que paso en la peticion");
-const piloto = model.borrarPiloto(idPiloto);
-if (!piloto) {
-    return res.status(404).json({error: 'Piloto no encontrado'});
-
-}
-res.status(204).send({mensaje: 'Producto eliminado'})
-console.log(`piloto con id ${idPiloto} ha sido eliminado`)
-}
-
-
-//////////// Modificar Piloto  PUT ///////////////
-
-export const modificarPiloto = (req,res) => {
-    const idPiloto = parseInt(req.params.id, 10);
-    console.log(idPiloto)
-    const { nombre, apellido, dni,certificacion, vencimiento_cma, email, contacto, rol, deleted_At} = req.body;
-    const actualizarPiloto = model.getPilotoByID(idPiloto);
-    if (!actualizarPiloto) {
-        return res.status(404).json({error: 'Piloto no encontrado'});
+export const crearPiloto = async (req, res) => {
+    //1 Recepcion de datos
+    const {nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = req.body;
+    //2. Validacion basica
+    if (!email || !password || !nombre || !rol){
+        return res.status(400).json({error: 'Faltan campos obligatorios (email, password, nombre y rol)'})
     }
-    actualizarPiloto.nombre = nombre !== undefined ? nombre : actualizarPiloto.name;
-    actualizarPiloto.apellido = apellido !== undefined ? apellido : actualizarPiloto.apellido;
-    actualizarPiloto.dni = dni !== undefined ? dni : actualizarPiloto.dni;
-    actualizarPiloto.certificacion !== undefined ? certificacion : actualizarPiloto.certificacion;
-    actualizarPiloto.vencimiento_cma !== undefined ? vencimiento_cma : actualizarPiloto.vencimiento_cma;
-    actualizarPiloto.email = email !== undefined ? email : actualizarPiloto.email;
-    actualizarPiloto.contacto = contacto !== undefined ? contacto : actualizarPiloto.contacto;
-    actualizarPiloto.rol = rol !== undefined ? rol : actualizarPiloto.rol;
-    actualizarPiloto.deleted_At = deleted_At !== undefined ? deleted_At : actualizarPiloto.deleted_At;
-    const pilotoActualizado = model.actualizarPiloto(idPiloto, actualizarPiloto);
-    res.json(actualizarPiloto);
-    console.log(`piloto con ID ${idPiloto} actualizado`);
-    console.log(pilotoActualizado)
+    try {
+        //3. encriptacion de contraseña
+        const salt = await bcrypt.genSalt(10)
+        const passwordHash = await bcrypt.hash(password, salt); // encriptamos
+        //4. Preparamos los datos para el modelo (usando la pass ya encriptada)
+        const nuevoPilotoData = {
+            nombre, apellido, dni, certificacion, vencimiento_cma, email, password: passwordHash,
+            contacto, rol
+        };
+        //5. llamada al modelo
+        const resultado = await model.crearPiloto(nuevoPilotoData);
+        //6. Respuesta exitosa (201 Created)
+        console.log(`[POST] Piloto creado ID: ${resultado.id_pilotos}`);
+        res.status(201).json(resultado);
+    } catch (error){
+        console.error(error);
+        // Si el error es por email duplicado (Codigo ER_DUP_ENTRY de MySQL)
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({error: 'El email ya esta registrado'})
+        }
+        res.status(500).json({error:'Error al crear el piloto'});
+    }
+
 }
