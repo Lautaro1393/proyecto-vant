@@ -30,6 +30,10 @@ export const getDronById = async (req, res) => {
 export const crearDron = async (req, res) => {
     const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body;
 
+    // Obtenemos el nombre del archivo. 
+    // Si req.file existe, guardamos el nombre. Si no, guardamos null.
+    const imagen = req.file ? req.file.filename : null;
+    
     // Validación básica
     if (!matricula || !numero_de_serie || !id_modelo_dron) {
         return res.status(400).json({ error: 'Faltan datos obligatorios (matricula, serie, modelo)' });
@@ -43,10 +47,10 @@ export const crearDron = async (req, res) => {
             id_modelo_dron, 
             piloto_id, 
             fecha_adquisicion,
-            imagen: null // Por ahora null, en el próximo paso pondremos el archivo
+            imagen: imagen // guardamos el nombre del archivo en la BD
         });
 
-        console.log(`[POST] Dron creado ID: ${nuevoDron.id_dron}`);
+        console.log(`[POST] Dron creado ID: ${nuevoDron.id_dron} | Imagen: ${imagen}`);
         res.status(201).json(nuevoDron);
 
     } catch (error) {
