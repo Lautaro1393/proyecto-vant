@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 
+
+// middleware para verificar si tiene un token 
+
 export const verificarToken = (req, res , next)=> {
     //1. Buscamos el token en el header
     const authHeader = req.headers['authorization'];
@@ -24,5 +27,17 @@ export const verificarToken = (req, res , next)=> {
         next();
     } catch(error){
         return res.status(401).json({error:"Token invalido o expirado"});
+    }
+};
+
+///////  Verificar si es admin ////////////
+
+export const verificarAdmin = (req,res, next) =>{
+    // Como verifyToken ya se ejecutó antes, ya sabemos quién es el usuario
+    // y tenemos sus datos en req.user
+    if (req.user.rol === 'Admin'){
+        next();
+    } else{
+        return res.status(403).json({error: "Acceso denegado . Se requienren permisos elevados"})
     }
 };
