@@ -31,8 +31,17 @@ app.use((req,res,next)=>{
 /////////// creacion del servidor /////////// crearcion del servidor/////////// 
 
 
-const PORT = 3000
 
-app.listen(PORT,()=>{
-    console.log(`               ---- server corriendo en http://localhost:${PORT} ----` )
+
+// Si Railway me da un puerto, uso ese. Si no (estoy en mi PC), uso el 3000.
+const PORT = process.env.PORT || 3000; 
+
+app.listen(PORT, () => {
+    console.log(`---- Server corriendo en http://localhost:${PORT} ----`);
 });
+
+// const PORT = 3000
+
+// app.listen(PORT,()=>{
+//     console.log(`               ---- server corriendo en http://localhost:${PORT} ----` )
+// });

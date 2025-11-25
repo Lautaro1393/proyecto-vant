@@ -1,5 +1,3 @@
-// import { getAllPilotos } from "../services/pilotos.service.js"; 
-// import * as service from '../services/pilotos.service.js'
 import * as model from '../models/pilotos.model.js'
 import bcrypt from 'bcrypt'
 
