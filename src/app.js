@@ -4,7 +4,7 @@ import pilotosRouter from '../src/routes/piloto.router.js' // importo el router
 import dronesRouter from '../src/routes/dron.router.js'
 import authRouter from '../src/routes/auth.routes.js'
 import modeloRouter from '../src/routes/modelo_dron.routes.js'
-
+import bateriaRouter from '../src/routes/bateria.routes.js'
 
 
 
@@ -20,6 +20,7 @@ app.use("/auth", authRouter)
 app.use("/api", pilotosRouter) // le digo que use ese modulo agregandole un prefijo "/api"
 app.use("/api", dronesRouter)
 app.use("/api", modeloRouter)
+app.use("/api", bateriaRouter)
 
 // RAIZ de la aplicacion
 app.get('/',(req,res)=> {
