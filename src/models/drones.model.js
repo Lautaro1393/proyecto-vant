@@ -1,4 +1,5 @@
 import {pool} from '../config/database.js'
+import { formatFecha } from '../helpers/dateHelper.js';
 
 // GET ALL // Trae todos los drones + nombre del modelo + apellido del piloto
 
@@ -41,7 +42,7 @@ export const crearDron = async (data) => {
         id_modelo_dron, 
         piloto_id, 
         imagen || null, 
-        fecha_adquisicion || new Date()
+        formatFecha(fecha_adquisicion) || new Date().toISOString().slice(0, 19).replace('T', ' ')
     ]);
 
     return { id_dron: result.insertId, ...data };
@@ -63,7 +64,7 @@ export const modificarDron = async (id, data) => {
     `;
 
     const [result] = await pool.query(query, [
-        matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion, id
+        matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, formatFecha(fecha_adquisicion), id
     ]);
 
     return result;

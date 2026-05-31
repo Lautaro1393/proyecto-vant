@@ -1,4 +1,5 @@
 import { pool } from '../config/database.js';
+import { formatFecha } from '../helpers/dateHelper.js';
 
 // GET ALL
 export const getAllPrevistos = async () => {
@@ -25,8 +26,8 @@ export const crearPrevisto = async (data) => {
     const [result] = await pool.query(query, [
         nombre_clave, 
         descripcion, 
-        fecha_inicio, 
-        fecha_fin, 
+        formatFecha(fecha_inicio), 
+        formatFecha(fecha_fin), 
         solicitante,
         previstoscol || 'Planificado' // Valor por defecto
     ]);
@@ -37,8 +38,6 @@ export const crearPrevisto = async (data) => {
 // UPDATE
 export const modificarPrevisto = async (id, data) => {
     const { nombre_clave, descripcion, fecha_inicio, fecha_fin, solicitante, previstoscol } = data;
-
-    const formatFecha = (f) => f ? new Date(f).toISOString().slice(0, 19).replace('T', ' ') : null;
 
     const query = `
         UPDATE previstos 

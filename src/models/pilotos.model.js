@@ -1,4 +1,5 @@
 import {pool} from '../config/database.js'
+import { formatFecha } from '../helpers/dateHelper.js';
 
 //get all
 
@@ -28,7 +29,7 @@ export const crearPiloto = async (data)=> {
     // Ejecutamos el INSERT
     const [result] = await pool.query(
         'INSERT INTO piloto (nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol]
+        [nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, password, contacto, rol]
     );
     // Devolvemos el objeto creado (OJO la pass ya viene hasheada del controller)
     return {id_pilotos: result.insertId, ...data}
@@ -62,7 +63,7 @@ export const modificarPiloto = async (id, data) => {
 
     // Pasamos el ID al final porque es el último signo de pregunta (?) en el WHERE
     const [result] = await pool.query(query, [
-        nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, id
+        nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, contacto, rol, id
     ]);
 
     return result;

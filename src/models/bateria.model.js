@@ -1,4 +1,5 @@
 import {pool} from '../config/database.js';
+import { formatFecha } from '../helpers/dateHelper.js';
 
 // GET ALL : Trae todas las baterias activas (que no hayan sido borradas)
 export const getAllBaterias = async () => {
@@ -21,7 +22,7 @@ export const crearBateria = async (data) => {
         capacidad,
         ciclos_de_carga || 0,
         estado || 'DISPONIBLE',
-        fecha_adquisicion || new Date()
+        formatFecha(fecha_adquisicion) || new Date().toISOString().slice(0, 19).replace('T', ' ')
     ]);
 
     return { id_bateria: result.insertId, ...data 

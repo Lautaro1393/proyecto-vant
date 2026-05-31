@@ -1,4 +1,5 @@
 import { pool } from '../config/database.js';
+import { formatFecha } from '../helpers/dateHelper.js';
 
 // GET ALL: Trae mantenimiento + matrícula del dron + serie de batería (si hay)
 export const getAllMantenimientos = async () => {
@@ -27,7 +28,7 @@ export const crearMantenimiento = async (data) => {
     const [result] = await pool.query(query, [
         dron_id, 
         fk_bateria_id || null, // Si no envían batería, guarda NULL
-        fecha || new Date(), 
+        formatFecha(fecha) || new Date().toISOString().slice(0, 19).replace('T', ' '), 
         tipo || 'Preventivo', 
         descripcion, 
         costo || 0,
