@@ -9,35 +9,43 @@ El proyecto **Sistema VANT** (Node.js + Express 5 + MySQL) tiene finalizada la *
 
 ---
 
-## 0. Prerrequisito bloqueante — Esquema de la BD
+## 0. Esquema de la BD — ✅ CONFIRMADO contra Railway (2026-06-08)
 
-El MCP de Railway no está conectado en la PC actual y no hay archivos `.sql` en el repo, por lo que se propone un esquema **inferred** alineado con el patrón de `previstos` y los modelos existentes. **Confirmar antes de escribir código.**
+El MCP de Railway está conectado y la BD fue inspeccionada con `src/scripts/inspect-vuelo-schema.js`. Migración aplicada con `src/scripts/migrate-vuelo.js` (7 statements, idempotente).
 
+**Esquema real de `vuelo` (post-migración)**:
 ```sql
--- Tabla principal
-CREATE TABLE vuelo (
-  id_vuelo       INT AUTO_INCREMENT PRIMARY KEY,
-  fecha          DATETIME NOT NULL,
-  duracion_min   INT NOT NULL,
-  observaciones  TEXT,
-  previsto_id    INT NULL,                  -- FK opcional a previstos.id_previstos
-  estado         VARCHAR(30) DEFAULT 'Realizado',
-  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  deleted_at     DATETIME NULL              -- soft delete
-);
-
--- Tablas pivote (relación N:M)
-CREATE TABLE vuelo_drones    (id_vuelo INT, id_dron    INT, PRIMARY KEY(id_vuelo, id_dron));
-CREATE TABLE vuelo_baterias  (id_vuelo INT, id_bateria INT, PRIMARY KEY(id_vuelo, id_bateria));
-CREATE TABLE vuelo_pilotos   (id_vuelo INT, id_piloto  INT, PRIMARY KEY(id_vuelo, id_piloto));
-
--- Nuevas columnas a sumar al modelo existente (validar nombres reales en Railway)
-ALTER TABLE dron    ADD COLUMN horas_vuelo_acum DECIMAL(8,2) DEFAULT 0;
-ALTER TABLE piloto  ADD COLUMN horas_vuelo_acum DECIMAL(8,2) DEFAULT 0;
--- bateria ya tiene `ciclos_de_carga` (verificado en src/models/bateria.model.js:23)
+id_vuelo        int AUTO_INCREMENT PK
+fecha           date NOT NULL
+coordenadas     varchar(100) NOT NULL
+tiempo_de_vuelo time NOT NULL               -- HH:MM:SS (reemplaza a duracion_min del plan original)
+proposito       varchar(45) NOT NULL
+clima           enum(Despejado, Parcialmente Nublado, Nublado, Lluvia Ligera, Lluvia Fuerte, Viento Fuerte, Niebla) NOT NULL
+observaciones   text NULL                   -- AGREGADO en migración
+previsto_id     int NULL                    -- AGREGADO en migración
+  KEY fk_vuelo_previsto (previsto_id)
+  FOREIGN KEY (previsto_id) REFERENCES previstos(id_previstos)
+    ON DELETE SET NULL ON UPDATE CASCADE
+estado          varchar(30) NOT NULL DEFAULT 'Realizado'  -- AGREGADO
+created_at      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP  -- AGREGADO
+deleted_at      timestamp(6) NULL            -- soft delete
 ```
 
-> **Acción del usuario**: confirmar nombres reales de las columnas. Si difieren (por ej. la columna de horas ya existe con otro nombre), ajustar las queries antes de avanzar.
+**Tablas pivote (ya existían, vacías)**:
+```sql
+vuelo_drones    (vuelo_id int, dron_id int)
+vuelo_baterias  (vuelo_id int, bateria_id int)
+vuelo_pilotos   (piloto_id int, vuelo_id int)  -- orden de columnas invertido, no afecta
+```
+
+**Columnas de acumuladores (AGREGADAS en migración)**:
+```sql
+ALTER TABLE dron    ADD COLUMN horas_vuelo_acum DECIMAL(8,2) NOT NULL DEFAULT 0;
+ALTER TABLE piloto  ADD COLUMN horas_vuelo_acum DECIMAL(8,2) NOT NULL DEFAULT 0;
+-- bateria.ciclos_de_carga ya existía
+```
+
+> **Decisión de diseño**: el `tiempo_de_vuelo` es de tipo `time` (HH:MM:SS), no `int` en minutos. La conversión a minutos para acumular en `horas_vuelo_acum` se hace en el controller con `formatTiempoMinutos()` antes del `UPDATE`.
 
 ---
 
@@ -96,31 +104,35 @@ Llama a `model.getAllVuelos()`. Devuelve JSON. Try/catch → 500.
 Payload esperado:
 ```json
 {
-  "fecha": "2026-06-15T10:30:00Z",
-  "duracion_min": 25,
-  "observaciones": "Vuelo de inspección",
-  "previsto_id": 3,
-  "estado": "Realizado",
-  "drones":    [1, 2],
-  "baterias":  [5, 6],
-  "pilotos":   [3]
+  "fecha": "2026-06-15",                        // YYYY-MM-DD (date, no datetime)
+  "coordenadas": "-34.6,-58.4",                 // varchar(100)
+  "tiempo_de_vuelo": "00:25:00",                // HH:MM:SS (time)
+  "proposito": "Inspección",                    // varchar(45)
+  "clima": "Despejado",                         // enum validado en servidor
+  "observaciones": "Vuelo de inspección",       // text, opcional
+  "previsto_id": 3,                             // int, opcional (FK a previstos)
+  "estado": "Realizado",                        // varchar(30), default 'Realizado'
+  "drones":    [1, 2],                          // mín 1
+  "baterias":  [5, 6],                          // mín 1
+  "pilotos":   [3]                              // mín 1
 }
 ```
 
 Flujo con **transacción** (siguiendo el patrón de `src/controllers/mantenimiento.controller.js:30`):
 
 ```
-1. Validar: fecha, duracion_min, drones[], baterias[], pilotos[] (mín. 1 de c/u)
-2. pool.getConnection() → conn
-3. conn.beginTransaction()
-4. INSERT vuelo → obtener id_vuelo
-5. INSERT bulk en vuelo_drones, vuelo_baterias, vuelo_pilotos
-6. Por cada bateria: UPDATE bateria SET ciclos_de_carga = ciclos_de_carga + 1
-7. Por cada dron:    UPDATE dron    SET horas_vuelo_acum = horas_vuelo_acum + ?
-8. Por cada piloto:  UPDATE piloto  SET horas_vuelo_acum = horas_vuelo_acum + ?
-9. conn.commit() → 201 con { id_vuelo, ...data }
-10. catch → conn.rollback() → 500
-11. conn.release() siempre (finally)
+1. Validar: fecha, tiempo_de_vuelo, clima (contra el enum), drones[], baterias[], pilotos[] (mín. 1 de c/u)
+2. Convertir tiempo_de_vuelo (HH:MM:SS) → minutos decimales con helper formatTiempoMinutos()
+3. pool.getConnection() → conn
+4. conn.beginTransaction()
+5. INSERT vuelo → obtener id_vuelo
+6. INSERT bulk en vuelo_drones, vuelo_baterias, vuelo_pilotos
+7. Por cada bateria: UPDATE bateria SET ciclos_de_carga = ciclos_de_carga + 1
+8. Por cada dron:    UPDATE dron    SET horas_vuelo_acum = horas_vuelo_acum + ?
+9. Por cada piloto:  UPDATE piloto  SET horas_vuelo_acum = horas_vuelo_acum + ?
+10. conn.commit() → 201 con { id_vuelo, ...data }
+11. catch → conn.rollback() → 500
+12. conn.release() siempre (finally)
 ```
 
 ### `actualizarVuelo` (PUT) — Admin
@@ -193,14 +205,16 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/baterias
 
 ## 8. Orden de ejecución
 
-| Paso | Acción | Bloqueante previo |
-|---|---|---|
-| 1 | **Usuario**: confirmar esquema de la sección 0 y las 3 decisiones de diseño de §6 | — |
-| 2 | Crear `vuelo.model.js` | Paso 1 |
-| 3 | Crear `vuelo.controller.js` con transacción | Paso 2 |
-| 4 | Crear `vuelo.routes.js` | Paso 3 |
-| 5 | Montar en `app.js` | Paso 4 |
-| 6 | Smoke test con curl | Paso 5 |
+| Paso | Acción | Bloqueante previo | Estado |
+|---|---|---|---|
+| 1 | Confirmar esquema y migrar BD | — | ✅ **Hecho** (2026-06-08) |
+| 2 | Crear `vuelo.model.js` | Paso 1 | ⏳ Pendiente |
+| 3 | Crear `vuelo.controller.js` con transacción | Paso 2 | ⏳ Pendiente |
+| 4 | Crear `vuelo.routes.js` | Paso 3 | ⏳ Pendiente |
+| 5 | Montar en `app.js` | Paso 4 | ⏳ Pendiente |
+| 6 | Smoke test con curl | Paso 5 | ⏳ Pendiente |
+
+> **Nota**: el script de migración `src/scripts/migrate-vuelo.js` queda en el repo para futuras corridas (es idempotente). `src/scripts/inspect-vuelo-schema.js` queda como utilidad de diagnóstico.
 
 ---
 

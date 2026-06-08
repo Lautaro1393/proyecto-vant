@@ -7,10 +7,11 @@ import modeloRouter from '../src/routes/modelo_dron.routes.js'
 import bateriaRouter from '../src/routes/bateria.routes.js'
 import mantenimientoRouter from '../src/routes/mantenimiento.routes.js'
 import previstosRouter from '../src/routes/previstos.routes.js'
+import vuelosRouter from '../src/routes/vuelo.routes.js'
 
 
 
-const app = express(); // instancio express 
+const app = express(); // instancio express
 
 //MiddleWare para usar Cors entre distintos dominios
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/api", modeloRouter)
 app.use("/api", bateriaRouter)
 app.use("/api", mantenimientoRouter )
 app.use("/api", previstosRouter)
+app.use("/api", vuelosRouter)
 
 
 // RAIZ de la aplicacion
