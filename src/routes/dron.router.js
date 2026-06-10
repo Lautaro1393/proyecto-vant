@@ -1,6 +1,6 @@
 import { Router } from "express";
 // Importamos los controladores NUEVOS
-import { getAllDrones, getDronById, crearDron, actualizarDron, borrarDron } from "../controllers/dron.controller.js";
+import { getAllDrones, getDronById, crearDron, actualizarDron, borrarDron, handleMulterError } from "../controllers/dron.controller.js";
 // Importamos los middlewares de seguridad
 import { verificarToken, verificarAdmin } from "../middlewares/auth.middleware.js";
 // Importamos multer
@@ -14,8 +14,14 @@ router.get('/drones/:id', getDronById);
 
 // Rutas Protegidas (Solo Admin puede modificar la flota)
 
-// POST 
-router.post('/drones', verificarToken, verificarAdmin,upload.single('imagen'), crearDron);
+// POST
+router.post('/drones',
+    verificarToken,
+    verificarAdmin,
+    upload.single('imagen'),
+    handleMulterError,
+    crearDron
+);
 
 router.put('/drones/:id',  verificarToken, verificarAdmin,
  actualizarDron);

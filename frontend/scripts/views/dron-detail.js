@@ -1,21 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
-
-const formatDate = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  return d.toISOString().slice(0, 10);
-};
-
-const chipForEstado = (estado) => {
-  const e = (estado || "").toLowerCase();
-  if (e.includes("mantenimiento")) return `<span class="chip chip--alert"><span class="chip__dot"></span>EN MANTENIMIENTO</span>`;
-  if (e.includes("disponible"))    return `<span class="chip chip--safe"><span class="chip__dot"></span>DISPONIBLE</span>`;
-  if (e.includes("vuelo"))         return `<span class="chip chip--info"><span class="chip__dot"></span>EN VUELO</span>`;
-  return `<span class="chip chip--dim"><span class="chip__dot"></span>${estado || "—"}</span>`;
-};
+import { chipForEstado, formatDate } from "../ui-helpers.js";
 
 const confirm = (msg) => window.confirm(msg);
 

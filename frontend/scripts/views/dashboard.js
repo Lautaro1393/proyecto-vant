@@ -1,31 +1,6 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
-
-const formatDate = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  return d.toISOString().slice(0, 10);
-};
-
-const segBar = (pct, total = 10) => {
-  const on = Math.round((pct / 100) * total);
-  const segs = Array.from({ length: total }, (_, i) => {
-    const cls = i < on
-      ? (pct < 25 ? "segbar__seg--alert" : pct < 50 ? "segbar__seg--caution" : "segbar__seg--on")
-      : "";
-    return `<div class="segbar__seg ${cls}"></div>`;
-  });
-  return `<div class="segbar">${segs.join("")}</div>`;
-};
-
-const chipForEstado = (estado) => {
-  const e = (estado || "").toLowerCase();
-  if (e.includes("mantenimiento")) return `<span class="chip chip--alert"><span class="chip__dot"></span>EN MANTENIMIENTO</span>`;
-  if (e.includes("disponible"))    return `<span class="chip chip--safe"><span class="chip__dot"></span>DISPONIBLE</span>`;
-  if (e.includes("vuelo"))         return `<span class="chip chip--info"><span class="chip__dot"></span>EN VUELO</span>`;
-  return `<span class="chip chip--dim"><span class="chip__dot"></span>${estado || "—"}</span>`;
-};
+import { chipForEstado, segBar, formatDate } from "../ui-helpers.js";
 
 export const renderDashboard = async (root) => {
   const user = getUser();
@@ -95,7 +70,7 @@ export const renderDashboard = async (root) => {
 
   const totalDrones = drones.length;
   const enMant     = drones.filter(d => (d.estado || "").toLowerCase().includes("mantenimiento")).length;
-  const disp       = drones.filter(d => (d.estado || "").toLowerCase().includes("disponible")).length;
+  const enServicio = drones.filter(d => (d.estado || "").toLowerCase().includes("servicio") && !d.estado.toLowerCase().includes("mantenimiento") && !d.estado.toLowerCase().includes("fuera")).length;
   const batBaja    = baterias.filter(b => Number(b.ciclos_de_carga || 0) > 200).length;
 
   document.getElementById("stats-slot").innerHTML = `
@@ -104,7 +79,7 @@ export const renderDashboard = async (root) => {
         <div class="stats__value">${totalDrones}</div>
         <div class="stats__label">Drones</div>
       </div>
-      <div class="stats__trend">${disp} disponibles</div>
+      <div class="stats__trend">${enServicio} en servicio</div>
     </div>
     <div class="stats__cell">
       <div>

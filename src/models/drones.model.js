@@ -52,21 +52,21 @@ export const crearDron = async (data) => {
 export const modificarDron = async (id, data) => {
     const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = data;
 
-    const query = `
-        UPDATE dron 
-        SET matricula = ?, 
-            numero_de_serie = ?, 
-            estado = ?, 
-            id_modelo_dron = ?, 
-            piloto_id = ?,
-            fecha_adquisicion = ?
-        WHERE id_dron = ?
-    `;
+    const fields = [];
+    const values = [];
+    if (matricula !== undefined)        { fields.push("matricula = ?");        values.push(matricula); }
+    if (numero_de_serie !== undefined)  { fields.push("numero_de_serie = ?");  values.push(numero_de_serie); }
+    if (estado !== undefined && estado !== null && estado !== "") { fields.push("estado = ?"); values.push(estado); }
+    if (id_modelo_dron !== undefined)   { fields.push("id_modelo_dron = ?");   values.push(id_modelo_dron); }
+    if (piloto_id !== undefined)        { fields.push("piloto_id = ?");        values.push(piloto_id); }
+    if (fecha_adquisicion !== undefined){ fields.push("fecha_adquisicion = ?");values.push(formatFecha(fecha_adquisicion)); }
 
-    const [result] = await pool.query(query, [
-        matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, formatFecha(fecha_adquisicion), id
-    ]);
+    if (fields.length === 0) return { affectedRows: 0, warning: "no fields to update" };
 
+    const query = `UPDATE dron SET ${fields.join(", ")} WHERE id_dron = ?`;
+    values.push(id);
+
+    const [result] = await pool.query(query, values);
     return result;
 }
 

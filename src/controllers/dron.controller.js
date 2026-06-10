@@ -1,4 +1,5 @@
 import * as model from '../models/drones.model.js'; //
+import multer from "multer";
 
 // GET ALL
 export const getAllDrones = async (req, res) => {
@@ -30,10 +31,10 @@ export const getDronById = async (req, res) => {
 export const crearDron = async (req, res) => {
     const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body;
 
-    // Obtenemos el nombre del archivo. 
+    // Obtenemos el nombre del archivo.
     // Si req.file existe, guardamos el nombre. Si no, guardamos null.
     const imagen = req.file ? req.file.filename : null;
-    
+
     // Validación básica
     if (!matricula || !numero_de_serie || !id_modelo_dron) {
         return res.status(400).json({ error: 'Faltan datos obligatorios (matricula, serie, modelo)' });
@@ -41,31 +42,51 @@ export const crearDron = async (req, res) => {
 
     try {
         const nuevoDron = await model.crearDron({
-            matricula, 
-            numero_de_serie, 
-            estado, 
-            id_modelo_dron, 
-            piloto_id, 
+            matricula,
+            numero_de_serie,
+            estado,
+            id_modelo_dron,
+            piloto_id,
             fecha_adquisicion,
-            imagen: imagen // guardamos el nombre del archivo en la BD
+            imagen: imagen
         });
 
         console.log(`[POST] Dron creado ID: ${nuevoDron.id_dron} | Imagen: ${imagen}`);
         res.status(201).json(nuevoDron);
 
     } catch (error) {
-        console.error(error);
+        console.error(`[POST] Dron fallo:`, error.sqlMessage || error.message);
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({ error: 'La matrícula o número de serie ya existen' });
         }
-        res.status(500).json({ error: 'Error al crear el dron' });
+        const msg = error.code === 'WARN_DATA_TRUNCATED'
+            ? 'Uno de los valores no es valido (ej. estado fuera del ENUM permitido)'
+            : (error.sqlMessage || 'Error al crear el dron');
+        res.status(500).json({ error: msg, code: error.code });
     }
+};
+
+// Multer puede tirar errores que no son atrapados por el try/catch del controller.
+// Handler global de multer errors para devolver 400 legible.
+export const handleMulterError = (err, req, res, next) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'La imagen supera el limite de 5MB' });
+        }
+        return res.status(400).json({ error: `Error de upload: ${err.message}` });
+    }
+    // fileFilter custom errors llegan como Error plano
+    if (err.message && /imagen/i.test(err.message)) {
+        return res.status(400).json({ error: 'La imagen debe ser JPG, PNG o GIF' });
+    }
+    return next(err);
 };
 
 // UPDATE (PUT)
 export const actualizarDron = async (req, res) => {
     const { id } = req.params;
-    const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body;
+    const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body || {};
 
     try {
         const result = await model.modificarDron(id, {
@@ -73,16 +94,21 @@ export const actualizarDron = async (req, res) => {
         });
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Dron no encontrado' });
+            // Sin cambios (puede ser que el valor ya era ese)
+            const actual = await model.getDronById(id);
+            return res.json({ message: 'Dron sin cambios', dron: actual });
         }
 
-        const dronActualizado = { id_dron: id, ...req.body };
+        const dronActualizado = await model.getDronById(id);
         console.log(`[PUT] Dron ID ${id} actualizado`);
         res.json({ message: 'Dron actualizado', dron: dronActualizado });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al actualizar el dron' });
+        console.error(`[PUT] Dron ID ${id} fallo:`, error.sqlMessage || error.message);
+        const msg = error.code === 'WARN_DATA_TRUNCATED'
+            ? 'Uno de los valores enviados no es valido para el campo correspondiente (ej. estado fuera del ENUM)'
+            : (error.sqlMessage || 'Error al actualizar el dron');
+        res.status(500).json({ error: msg, code: error.code });
     }
 };
 

@@ -1,16 +1,10 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
+import { ESTADOS_DRON_OPTIONS, formatDateInput } from "../ui-helpers.js";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-
-const formatDateInput = (iso) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d)) return "";
-  return d.toISOString().slice(0, 10);
-};
 
 const validate = (f) => {
   const errs = [];
@@ -113,10 +107,7 @@ export const renderDronesForm = async (root, opts = {}) => {
           <label class="field__label" for="estado">Estado</label>
           <div class="input-wrap">
             <select class="select" id="estado" name="estado">
-              <option value="">-- SIN ESPECIFICAR --</option>
-              <option value="En Servicio">En Servicio</option>
-              <option value="En Mantenimiento">En Mantenimiento</option>
-              <option value="Fuera de Servicio">Fuera de Servicio</option>
+              ${ESTADOS_DRON_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join("")}
             </select>
             <div class="input-wrap__brackets">
               <span class="br-tl"></span><span class="br-tr"></span>
@@ -261,20 +252,34 @@ export const renderDronesForm = async (root, opts = {}) => {
     btn.disabled = true;
     btn.textContent = isEdit ? "GUARDANDO..." : "REGISTRANDO...";
     try {
-      const fd = new FormData();
-      Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
-      const file = main.querySelector("#imagen")?.files[0];
-      if (file && !isEdit) fd.append("imagen", file);
-
       const url    = isEdit ? `/api/drones/${opts.id}` : `/api/drones`;
       const method = isEdit ? "PUT" : "POST";
       const token  = localStorage.getItem("vant.jwt");
+      let res;
 
-      const res = await fetch(url, {
-        method,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: fd,
-      });
+      if (isEdit) {
+        // Edicion: JSON, el PUT no acepta multer
+        res = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(data),
+        });
+      } else {
+        // Alta: FormData + multer (soporta imagen)
+        const fd = new FormData();
+        Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
+        const file = main.querySelector("#imagen")?.files[0];
+        if (file) fd.append("imagen", file);
+
+        res = await fetch(url, {
+          method,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: fd,
+        });
+      }
       const ct = res.headers.get("content-type") || "";
       const body = ct.includes("application/json") ? await res.json() : await res.text();
       if (!res.ok) {
