@@ -22,7 +22,7 @@ export const icon = (name) => ICONS[name] || "";
 
 const currentNav = () => NAV.find(n => window.location.hash.startsWith(`#${n.hash}`))?.hash || "";
 
-export const renderShell = ({ titlePrefix, title, id, user, onLogout }) => `
+export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActions = "" }) => `
   <div class="app">
     <header class="app__header">
       <div class="app__brand">
@@ -34,6 +34,7 @@ export const renderShell = ({ titlePrefix, title, id, user, onLogout }) => `
         <span class="app__title-prefix">${titlePrefix || "00"}</span> ${title}
       </div>
       <div class="app__actions">
+        ${headerActions}
         ${user?.rol ? `<span class="chip chip--olive" title="${user.rol}"><span class="chip__dot"></span>${user.rol.toUpperCase()}</span>` : ""}
         <button class="btn btn--ghost btn--icon" id="btn-logout" title="Logout">${icon("logout")}</button>
       </div>

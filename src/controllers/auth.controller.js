@@ -16,8 +16,13 @@ export const login = async (req, res) => {
         if (!piloto) {
             return res.status(401).json({error:'Credenciales invalidas'});
         }
+        //3. Verificar la contraseña con bcrypt
+        const passwordOk = await bcrypt.compare(password, piloto.password);
+        if (!passwordOk) {
+            return res.status(401).json({error:'Credenciales invalidas'});
+        }
         //4. Generar el Token JWT
-        //Guardamos en el token el ID y el ROL 
+        //Guardamos en el token el ID y el ROL
         const token = jwt.sign(
             {id: piloto.id_pilotos, rol: piloto.rol},
             process.env.JWT_SECRET,
