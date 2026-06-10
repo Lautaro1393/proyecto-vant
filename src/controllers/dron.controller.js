@@ -88,19 +88,22 @@ export const actualizarDron = async (req, res) => {
     const { id } = req.params;
     const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body || {};
 
+    // Si multer proceso un archivo, tenemos req.file con el nombre
+    const imagen = req.file ? req.file.filename : undefined;
+
     try {
         const result = await model.modificarDron(id, {
-            matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion
+            matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion,
+            imagen
         });
 
         if (result.affectedRows === 0) {
-            // Sin cambios (puede ser que el valor ya era ese)
             const actual = await model.getDronById(id);
             return res.json({ message: 'Dron sin cambios', dron: actual });
         }
 
         const dronActualizado = await model.getDronById(id);
-        console.log(`[PUT] Dron ID ${id} actualizado`);
+        console.log(`[PUT] Dron ID ${id} actualizado${imagen ? ' | imagen: ' + imagen : ''}`);
         res.json({ message: 'Dron actualizado', dron: dronActualizado });
 
     } catch (error) {

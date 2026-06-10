@@ -122,27 +122,23 @@ export const renderDronesForm = async (root, opts = {}) => {
         <textarea class="textarea" id="observaciones" name="observaciones" rows="3"></textarea>
       </div>
 
-      ${!isEdit ? `
-        <div class="field">
-          <label class="field__label">Imagen (opcional, max 5MB)</label>
-          <div class="dropzone" id="dropzone" tabindex="0">
-            <input type="file" id="imagen" name="imagen" accept="image/jpeg,image/png,image/gif" hidden />
-            <div class="dropzone__inner" id="dz-inner">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-              <p class="label-caps mt-2">ARRASTRAR O TOCAR</p>
-              <p class="dim text-sm">JPEG / PNG / GIF</p>
-            </div>
-            <img class="dropzone__preview" id="dz-preview" alt="preview" />
+      <div class="field">
+        <label class="field__label">Imagen (opcional${isEdit ? ", reemplazar la actual" : ""}, max 5MB)</label>
+        <div class="dropzone" id="dropzone" tabindex="0">
+          <input type="file" id="imagen" name="imagen" accept="image/jpeg,image/png,image/gif" hidden />
+          <div class="dropzone__inner" id="dz-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="label-caps mt-2">${isEdit ? "REEMPLAZAR IMAGEN" : "ARRASTRAR O TOCAR"}</p>
+            <p class="dim text-sm">JPEG / PNG / GIF</p>
           </div>
-          <p class="field__hint" id="dz-hint"></p>
+          <img class="dropzone__preview" id="dz-preview" alt="preview" />
         </div>
-      ` : `
-        <p class="dim text-sm">Edicion no soporta cambio de imagen (lim. backend). Mantener imagen actual.</p>
-      `}
+        <p class="field__hint" id="dz-hint"></p>
+      </div>
 
       <div class="row" style="gap:var(--space-2);margin-top:var(--space-3)">
         <a class="btn btn--secondary btn--block" href="${isEdit ? `#/drones/${opts.id}` : "#/drones"}">CANCELAR</a>
@@ -185,13 +181,21 @@ export const renderDronesForm = async (root, opts = {}) => {
     main.querySelector("#observaciones").value     = dronExistente.observaciones || "";
   }
 
-  // Drag & drop + preview
-  if (!isEdit) {
+  // Drag & drop + preview (tanto en alta como en edicion)
+  {
     const dz = main.querySelector("#dropzone");
     const input = main.querySelector("#imagen");
     const inner = main.querySelector("#dz-inner");
     const preview = main.querySelector("#dz-preview");
     const hint = main.querySelector("#dz-hint");
+
+    // En edicion: si hay imagen actual, mostrarla en preview
+    if (isEdit && dronExistente?.imagen) {
+      preview.src = `/uploads/${dronExistente.imagen}`;
+      preview.style.display = "block";
+      inner.style.display = "none";
+      hint.innerHTML = `<span class="dim">Actual: ${dronExistente.imagen}</span>`;
+    }
 
     const setFile = (file) => {
       hint.innerHTML = "";
@@ -255,31 +259,20 @@ export const renderDronesForm = async (root, opts = {}) => {
       const url    = isEdit ? `/api/drones/${opts.id}` : `/api/drones`;
       const method = isEdit ? "PUT" : "POST";
       const token  = localStorage.getItem("vant.jwt");
-      let res;
 
-      if (isEdit) {
-        // Edicion: JSON, el PUT no acepta multer
-        res = await fetch(url, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(data),
-        });
-      } else {
-        // Alta: FormData + multer (soporta imagen)
-        const fd = new FormData();
-        Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
-        const file = main.querySelector("#imagen")?.files[0];
-        if (file) fd.append("imagen", file);
+      // Siempre FormData: el backend ahora acepta multer en POST y PUT.
+      // Si no hay imagen nueva en edicion, no se envia el campo imagen
+      // y la BD mantiene el valor actual.
+      const fd = new FormData();
+      Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
+      const file = main.querySelector("#imagen")?.files[0];
+      if (file) fd.append("imagen", file);
 
-        res = await fetch(url, {
-          method,
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: fd,
-        });
-      }
+      const res = await fetch(url, {
+        method,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
       const ct = res.headers.get("content-type") || "";
       const body = ct.includes("application/json") ? await res.json() : await res.text();
       if (!res.ok) {

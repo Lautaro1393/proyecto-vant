@@ -23,8 +23,13 @@ router.post('/drones',
     crearDron
 );
 
-router.put('/drones/:id',  verificarToken, verificarAdmin,
- actualizarDron);
+router.put('/drones/:id',
+    verificarToken,
+    verificarAdmin,
+    upload.single('imagen'),
+    handleMulterError,
+    actualizarDron
+);
 
 router.delete('/drones/:id',  verificarToken, verificarAdmin,
  borrarDron);

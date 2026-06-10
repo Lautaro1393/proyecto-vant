@@ -50,7 +50,7 @@ export const crearDron = async (data) => {
 
 // UPDATE: Modificar Dron
 export const modificarDron = async (id, data) => {
-    const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = data;
+    const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion, imagen } = data;
 
     const fields = [];
     const values = [];
@@ -60,6 +60,7 @@ export const modificarDron = async (id, data) => {
     if (id_modelo_dron !== undefined)   { fields.push("id_modelo_dron = ?");   values.push(id_modelo_dron); }
     if (piloto_id !== undefined)        { fields.push("piloto_id = ?");        values.push(piloto_id); }
     if (fecha_adquisicion !== undefined){ fields.push("fecha_adquisicion = ?");values.push(formatFecha(fecha_adquisicion)); }
+    if (imagen !== undefined)            { fields.push("imagen = ?");           values.push(imagen); }
 
     if (fields.length === 0) return { affectedRows: 0, warning: "no fields to update" };
 
