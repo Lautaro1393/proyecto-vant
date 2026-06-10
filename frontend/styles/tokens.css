@@ -1,0 +1,144 @@
+/* ==========================================================================
+   DESIGN TOKENS — Tactical UAV Fleet Manager
+   Basado en "Field Ops Integrated System" (Stitch Tactical UAV Fleet Manager)
+   Mobile-first, dark por defecto, acentos arena + azul opaco.
+   ========================================================================== */
+
+:root {
+  /* ====== SURFACES (Tonal Inversion: capas de oscuro a claro) ====== */
+  --surface-lowest:  #0e0e0c;   /* fondo base, debajo de todo */
+  --surface-low:     #1c1c19;   /* contenedores profundos */
+  --surface:         #20201d;   /* card standard */
+  --surface-high:    #2a2a27;   /* contenedor elevado */
+  --surface-highest: #353532;   /* active state / selected */
+  --surface-bright:  #3a3936;   /* maximo brillo de superficie */
+
+  /* ====== TEXTOS / BORDES ====== */
+  --on-surface:         #e5e2dd;   /* texto principal */
+  --on-surface-variant: #c8c7bb;   /* texto secundario */
+  --on-surface-dim:     #919186;   /* labels apagados */
+  --on-surface-faint:   #6b6b62;
+  --outline:            #919186;   /* 1px borders, mismas que dim */
+  --outline-variant:    #47473e;   /* borders sutiles entre modulos */
+  --on-primary:         #2e3318;
+  --on-error:           #690005;
+
+  /* ====== PRIMARY — Tactical Olive ====== */
+  --primary:        #c5caa4;
+  --primary-dim:    #8f9471;
+  --primary-deep:   #5c6142;
+  --primary-fixed:  #e1e6be;
+  --primary-bg:     #272c12;
+
+  /* ====== SECONDARY (utilidad, contenedores) ====== */
+  --secondary:        #c7c8b2;
+  --secondary-dim:    #484a3a;
+  --secondary-bg:     #303222;
+
+  /* ====== ACCENTOS FUNCIONALES (estilo dull, no neon) ====== */
+  --alert:    #b25e4d;   /* danger / EN MANTENIMIENTO / ERROR */
+  --alert-bg: #3a1c14;
+  --safe:     #6d8e6f;   /* OK / ACTIVO / DISPONIBLE */
+  --safe-bg:  #1d2a1f;
+  --caution:  #9b8954;   /* WARNING / PRECAUCION */
+  --caution-bg:#2e2818;
+
+  /* ====== INFO — Azul opaco (acento para links/info) ====== */
+  --info:        #6a89a7;
+  --info-dim:    #3d5063;
+  --info-deep:   #1f2a38;
+  --on-info:     #d8e3f0;
+
+  /* ====== ARENA (Desert accents) ====== */
+  --sand:        #c2a878;
+  --sand-dim:    #7a6a4d;
+  --sand-deep:   #3a2f1f;
+  --sand-bg:     #2a2218;
+
+  /* ====== SPACING (base 4px) ====== */
+  --unit: 4px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --gutter: 1px;
+  --margin-sm: 8px;
+  --margin-md: 16px;
+  --container-padding: 12px;
+
+  /* ====== TYPOGRAPHY ====== */
+  --font-mono: "JetBrains Mono", "Fira Code", "Consolas", ui-monospace, monospace;
+
+  --text-headline-lg: 700 24px/32px var(--font-mono);
+  --text-headline-md: 700 18px/24px var(--font-mono);
+  --text-headline-sm: 700 14px/20px var(--font-mono);
+
+  --text-body-lg: 400 14px/20px var(--font-mono);
+  --text-body-md: 400 12px/16px var(--font-mono);
+  --text-body-sm: 400 10px/14px var(--font-mono);
+
+  --text-label-caps: 700 10px/12px var(--font-mono);  /* letter-spacing en uso */
+  --text-label-sm:   700 10px/14px var(--font-mono);
+
+  --text-telemetry: 500 16px/20px var(--font-mono);
+
+  /* ====== SHAPE (sharp / brutalist) ====== */
+  --radius-0: 0;
+  --radius-chamfer: 4px;   /* unico radio permitido, solo para chamfers de 45deg en CTAs */
+
+  /* ====== BORDERS ====== */
+  --border-1: 1px solid var(--outline-variant);
+  --border-2: 1px solid var(--outline);
+  --border-primary-faint: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+
+  /* ====== ELEVATION (sin shadows, solo tonal) ====== */
+  --elev-0: var(--surface);
+  --elev-1: var(--surface-high);
+  --elev-2: var(--surface-highest);
+
+  /* ====== TRANSITIONS ====== */
+  --t-fast: 100ms ease-out;
+  --t-base: 150ms ease-out;
+  --t-slow: 300ms ease-out;
+
+  /* ====== LAYOUT ====== */
+  --header-h: 56px;
+  --sidebar-w: 56px;
+  --sidebar-w-desktop: 200px;
+  --touch-target: 44px;
+  --content-max: 1280px;
+}
+
+/* ============================================================
+   THEMES OPERATIVOS (futuro, no aplicados por defecto)
+   ============================================================ */
+[data-theme="night"] {
+  --surface-lowest: #0a0810;
+  --surface-low:    #15101f;
+  --surface:        #1c1730;
+  --surface-high:   #251d40;
+  --surface-highest:#2f2652;
+  --primary:        #b8a0d4;
+  --primary-dim:    #6a5c8a;
+  --outline-variant:#3a3050;
+}
+
+[data-theme="desert"] {
+  --surface-lowest: #f4ead8;
+  --surface-low:    #e8d8b8;
+  --surface:        #d8c498;
+  --surface-high:   #c8b078;
+  --surface-highest:#b89860;
+  --on-surface:     #3a2f1f;
+  --on-surface-variant: #5a4a30;
+  --primary:        #6b5028;
+  --primary-dim:    #8a6c38;
+  --outline-variant:#a89070;
+  --sand:           #5a3a18;
+}

@@ -28,11 +28,29 @@ app.use("/api", mantenimientoRouter )
 app.use("/api", previstosRouter)
 app.use("/api", vuelosRouter)
 
+// Frontend estatico (Tactical UAV Fleet Manager) — solo si la carpeta existe
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
-// RAIZ de la aplicacion
-app.get('/',(req,res)=> {
-    res.send(' bienvenido a la aplicacion de Vehiculos Aereos No Tripulados ')
-})
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const frontendDir = join(__dirname, "..", "frontend");
+if (existsSync(frontendDir)) {
+  app.use("/styles", express.static(join(frontendDir, "styles")));
+  app.use("/scripts", express.static(join(frontendDir, "scripts")));
+  app.use("/assets", express.static(join(frontendDir, "assets")));
+  app.get("/", (req, res) => res.sendFile(join(frontendDir, "index.html")));
+  app.get(/^\/(?!api|auth|uploads|styles|scripts|assets).*/, (req, res) => res.sendFile(join(frontendDir, "index.html")));
+}
+
+// uploads (imagenes de drones)
+const uploadsDir = join(__dirname, "..", "uploads");
+if (existsSync(uploadsDir)) {
+  app.use("/uploads", express.static(uploadsDir));
+}
+
+
+// RAIZ de la aplicacion — manejada por el bloque frontend arriba (sendFile index.html).
 
 app.use((req,res,next)=>{
     res.status(404).json({error:'Ruta no encontrada'})
