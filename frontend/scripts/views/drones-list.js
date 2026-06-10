@@ -40,7 +40,12 @@ export const renderDronesList = async (root) => {
     id: "MOD-04",
     user,
     headerActions: isAdmin
-      ? `<a class="btn btn--primary btn--sm hide-mobile" href="#/drones/new" style="min-height:36px;padding:0 var(--space-3)">+ ALTA</a>`
+      ? `<a class="btn btn--primary btn--sm" href="#/drones/new" style="min-height:36px;padding:0 var(--space-3)">+ ALTA</a>`
+      : "",
+    fab: isAdmin
+      ? `<a class="fab" href="#/drones/new" title="ALTA DRON" aria-label="Alta de dron">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </a>`
       : "",
   });
   const main = bindShell(root, user);
@@ -75,12 +80,6 @@ export const renderDronesList = async (root) => {
     <section id="list-slot" class="stack-2">
       <div class="card"><div class="card__body" style="display:flex;gap:var(--space-2);align-items:center"><span class="spinner"></span><span class="dim">Cargando flota...</span></div></div>
     </section>
-
-    ${isAdmin ? `
-      <a class="fab" href="#/drones/new" title="ALTA DRON">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </a>
-    ` : ""}
   `;
 
   const safe = async (fn, fb = []) => { try { return await fn(); } catch (e) { console.error(e); return fb; } };

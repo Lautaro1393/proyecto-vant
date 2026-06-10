@@ -7,6 +7,7 @@ export const login = async (email, password) => {
   if (!res || !res.token) throw new Error("Respuesta de login invalida");
   setToken(res.token);
   if (res.user) setUser(res.user);
+  else if (res.piloto) setUser(res.piloto);
   return res;
 };
 

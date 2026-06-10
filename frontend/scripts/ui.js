@@ -22,7 +22,7 @@ export const icon = (name) => ICONS[name] || "";
 
 const currentNav = () => NAV.find(n => window.location.hash.startsWith(`#${n.hash}`))?.hash || "";
 
-export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActions = "" }) => `
+export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActions = "", fab = "" }) => `
   <div class="app">
     <header class="app__header">
       <div class="app__brand">
@@ -56,6 +56,7 @@ export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActi
         </a>
       `).join("")}
     </nav>
+    ${fab}
   </div>
 `;
 

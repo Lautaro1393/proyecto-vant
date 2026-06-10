@@ -113,9 +113,10 @@ export const renderDronesForm = async (root, opts = {}) => {
           <label class="field__label" for="estado">Estado</label>
           <div class="input-wrap">
             <select class="select" id="estado" name="estado">
-              <option value="Disponible">Disponible</option>
+              <option value="">-- SIN ESPECIFICAR --</option>
+              <option value="En Servicio">En Servicio</option>
               <option value="En Mantenimiento">En Mantenimiento</option>
-              <option value="En Vuelo">En Vuelo</option>
+              <option value="Fuera de Servicio">Fuera de Servicio</option>
             </select>
             <div class="input-wrap__brackets">
               <span class="br-tl"></span><span class="br-tr"></span>
@@ -173,7 +174,7 @@ export const renderDronesForm = async (root, opts = {}) => {
   modelos.forEach(m => {
     const opt = document.createElement("option");
     opt.value = m.id_modelo_dron ?? m.id;
-    opt.textContent = `${m.nombre || m.nombre_modelo || "—"} — ${m.fabricante || ""}`;
+    opt.textContent = `${m.modelo || m.nombre || m.nombre_modelo || "—"} — ${m.fabricante || ""}`;
     selModelo.appendChild(opt);
   });
   pilotos.forEach(p => {
@@ -189,7 +190,7 @@ export const renderDronesForm = async (root, opts = {}) => {
     main.querySelector("#id_modelo_dron").value    = dronExistente.id_modelo_dron || "";
     main.querySelector("#piloto_id").value         = dronExistente.piloto_id || "";
     main.querySelector("#fecha_adquisicion").value = formatDateInput(dronExistente.fecha_adquisicion);
-    main.querySelector("#estado").value            = dronExistente.estado || "Disponible";
+    main.querySelector("#estado").value            = dronExistente.estado || "";
     main.querySelector("#observaciones").value     = dronExistente.observaciones || "";
   }
 
@@ -260,31 +261,33 @@ export const renderDronesForm = async (root, opts = {}) => {
     btn.disabled = true;
     btn.textContent = isEdit ? "GUARDANDO..." : "REGISTRANDO...";
     try {
-      if (isEdit) {
-        await api.put(`/api/drones/${opts.id}`, data);
-      } else {
-        const fd = new FormData();
-        Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
-        const file = main.querySelector("#imagen")?.files[0];
-        if (file) fd.append("imagen", file);
-        await fetch(`/api/drones`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${localStorage.getItem("vant.jwt")}` },
-          body: fd,
-        }).then(async (r) => {
-          const ct = r.headers.get("content-type") || "";
-          const body = ct.includes("application/json") ? await r.json() : await r.text();
-          if (!r.ok) {
-            const err = new Error((body && body.error) || `HTTP ${r.status}`);
-            err.body = body;
-            throw err;
-          }
-          return body;
-        });
+      const fd = new FormData();
+      Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
+      const file = main.querySelector("#imagen")?.files[0];
+      if (file && !isEdit) fd.append("imagen", file);
+
+      const url    = isEdit ? `/api/drones/${opts.id}` : `/api/drones`;
+      const method = isEdit ? "PUT" : "POST";
+      const token  = localStorage.getItem("vant.jwt");
+
+      const res = await fetch(url, {
+        method,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      const ct = res.headers.get("content-type") || "";
+      const body = ct.includes("application/json") ? await res.json() : await res.text();
+      if (!res.ok) {
+        const err = new Error((body && body.error) || `HTTP ${res.status}`);
+        err.status = res.status;
+        err.body = body;
+        throw err;
       }
       navigate(isEdit ? `/drones/${opts.id}` : "/drones");
     } catch (err) {
-      msg.innerHTML = `<div class="error-banner">${err.message}</div>`;
+      const detail = (err.body && err.body.error) || err.message || "Error desconocido";
+      const extra  = err.status ? ` (HTTP ${err.status})` : "";
+      msg.innerHTML = `<div class="error-banner">${detail}${extra}</div>`;
       btn.disabled = false;
       btn.textContent = isEdit ? "GUARDAR CAMBIOS" : "ALTA DRON";
     }
