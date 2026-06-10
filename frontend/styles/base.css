@@ -103,6 +103,8 @@ small, .text-sm { font: var(--text-body-sm); }
   min-height: 0;
 }
 
+.app__sidebar { display: none; }
+
 .app__main {
   padding: var(--space-3);
   display: flex;
@@ -150,12 +152,12 @@ small, .text-sm { font: var(--text-body-sm); }
   .app__main { padding: var(--space-4); gap: var(--space-4); }
 
   .app__sidebar {
-    background: var(--surface-low);
-    border-right: var(--border-1);
-    padding: var(--space-3) 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    background: var(--surface-low);
+    border-right: var(--border-1);
+    padding: var(--space-3) 0;
   }
   .app__sidebar a {
     display: flex;
