@@ -36,11 +36,21 @@ import { dirname, join } from "node:path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const frontendDir = join(__dirname, "..", "frontend");
 if (existsSync(frontendDir)) {
-  app.use("/styles", express.static(join(frontendDir, "styles")));
-  app.use("/scripts", express.static(join(frontendDir, "scripts")));
-  app.use("/assets", express.static(join(frontendDir, "assets")));
-  app.get("/", (req, res) => res.sendFile(join(frontendDir, "index.html")));
-  app.get(/^\/(?!api|auth|uploads|styles|scripts|assets).*/, (req, res) => res.sendFile(join(frontendDir, "index.html")));
+  app.use("/styles", express.static(join(frontendDir, "styles"), {
+    setHeaders: (res) => res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"),
+  }));
+  app.use("/scripts", express.static(join(frontendDir, "scripts"), {
+    setHeaders: (res) => res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"),
+  }));
+  app.use("/assets", express.static(join(frontendDir, "assets"), {
+    setHeaders: (res) => res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"),
+  }));
+  const indexHandler = (req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.sendFile(join(frontendDir, "index.html"));
+  };
+  app.get("/", indexHandler);
+  app.get(/^\/(?!api|auth|uploads|styles|scripts|assets).*/, indexHandler);
 }
 
 // uploads (imagenes de drones)

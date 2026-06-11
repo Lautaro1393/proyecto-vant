@@ -264,9 +264,17 @@ export const renderDronesForm = async (root, opts = {}) => {
       // Si no hay imagen nueva en edicion, no se envia el campo imagen
       // y la BD mantiene el valor actual.
       const fd = new FormData();
-      Object.entries(data).forEach(([k, v]) => { if (v !== "" && v != null) fd.append(k, v); });
-      const file = main.querySelector("#imagen")?.files[0];
-      if (file) fd.append("imagen", file);
+      const fileInput = main.querySelector("#imagen");
+      const file = fileInput?.files[0];
+      Object.entries(data).forEach(([k, v]) => {
+        // No duplicar el file: si es el campo imagen, agregar el File del input (con fieldname "imagen")
+        if (k === "imagen") return;
+        if (v !== "" && v != null) fd.append(k, v);
+      });
+      // Si hay file seleccionado, agregarlo con el fieldname correcto.
+      // Si el file input esta vacio (file.size === 0) NO lo agregamos, asi
+      // multer no ve un File fantasma con fieldname "imagen".
+      if (file && file.size > 0) fd.append("imagen", file);
 
       const res = await fetch(url, {
         method,
