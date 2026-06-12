@@ -8,9 +8,9 @@ import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
-// Rutas Públicas (Cualquiera puede ver, o puedes ponerle verificarToken si quieres que sea privado)
-router.get('/drones', getAllDrones);
-router.get('/drones/:id', getDronById);
+// Rutas Protegidas (cualquiera autenticado puede ver, solo Admin modifica)
+router.get('/drones', verificarToken, getAllDrones);
+router.get('/drones/:id', verificarToken, getDronById);
 
 // Rutas Protegidas (Solo Admin puede modificar la flota)
 

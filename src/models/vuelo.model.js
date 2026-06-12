@@ -171,3 +171,48 @@ export const deleteVuelo = async (id) => {
 };
 
 export { CLIMAS_VALIDOS };
+
+export const validarFKsVuelo = async (drones, baterias, pilotos, previsto_id) => {
+    const placeholders = (arr) => arr.map(() => '?').join(',');
+    const faltantes = {};
+
+    if (drones && drones.length) {
+        const [rows] = await pool.query(
+            `SELECT id_dron FROM dron WHERE id_dron IN (${placeholders(drones)}) AND deleted_at IS NULL`,
+            drones
+        );
+        const ids = rows.map(r => r.id_dron);
+        const missing = drones.filter(id => !ids.includes(Number(id)));
+        if (missing.length) faltantes.drones = missing;
+    }
+
+    if (baterias && baterias.length) {
+        const [rows] = await pool.query(
+            `SELECT id_bateria FROM bateria WHERE id_bateria IN (${placeholders(baterias)}) AND deleted_at IS NULL`,
+            baterias
+        );
+        const ids = rows.map(r => r.id_bateria);
+        const missing = baterias.filter(id => !ids.includes(Number(id)));
+        if (missing.length) faltantes.baterias = missing;
+    }
+
+    if (pilotos && pilotos.length) {
+        const [rows] = await pool.query(
+            `SELECT id_pilotos FROM piloto WHERE id_pilotos IN (${placeholders(pilotos)}) AND deleted_at IS NULL`,
+            pilotos
+        );
+        const ids = rows.map(r => r.id_pilotos);
+        const missing = pilotos.filter(id => !ids.includes(Number(id)));
+        if (missing.length) faltantes.pilotos = missing;
+    }
+
+    if (previsto_id !== undefined && previsto_id !== null && previsto_id !== "") {
+        const [rows] = await pool.query(
+            'SELECT id_previstos FROM previstos WHERE id_previstos = ? AND deleted_at IS NULL',
+            [previsto_id]
+        );
+        if (!rows.length) faltantes.previsto = [previsto_id];
+    }
+
+    return faltantes;
+};

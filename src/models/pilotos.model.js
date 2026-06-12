@@ -1,70 +1,72 @@
 import {pool} from '../config/database.js'
 import { formatFecha } from '../helpers/dateHelper.js';
 
+const PILOTO_SAFE_COLUMNS =
+  'id_pilotos, nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, horas_vuelo_acum, deleted_at';
+
 //get all
 
 export const getAllPilotos= async() =>{
-    const [rows] = await pool.query('select * from piloto');
+    const [rows] = await pool.query(
+        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE deleted_at IS NULL`
+    );
     return rows
 }
 
 // GET BY ID: Buscar uno solo por su ID
 export const getPilotoByID = async (id) => {
-    // Usamos '?' para evitar inyecciones SQL (seguridad básica)
-    const [rows] = await pool.query('SELECT * FROM piloto WHERE id_pilotos = ?', [id]);
-    return rows[0]; // Retorna el primer resultado o undefined
+    const [rows] = await pool.query(
+        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE id_pilotos = ? AND deleted_at IS NULL`,
+        [id]
+    );
+    return rows[0];
 }
 
 // SEARCH: Buscar por nombre (Mejorado con SQL)
 export const searchPiloto = async (termino) => {
-    // ILIKE no existe en MySQL estándar, usamos LIKE. 
-    // Los signos % significan "cualquier texto antes o después".
-    const [rows] = await pool.query('SELECT * FROM piloto WHERE nombre LIKE ?', [`%${termino}%`]);
+    const [rows] = await pool.query(
+        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE nombre LIKE ? AND deleted_at IS NULL`,
+        [`%${termino}%`]
+    );
     return rows;
 }
 
 // CREATE: Crear Piloto
 export const crearPiloto = async (data)=> {
     const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = data;
-    // Ejecutamos el INSERT
     const [result] = await pool.query(
         'INSERT INTO piloto (nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, password, contacto, rol]
     );
-    // Devolvemos el objeto creado (OJO la pass ya viene hasheada del controller)
     return {id_pilotos: result.insertId, ...data}
 }
-// DELETE: borrar un piloto por ID
+// DELETE: soft-delete
 export const borrarPiloto = async (id) => {
-    // Ejecutamos la sentencia DELETE
-    const [result] = await pool.query('DELETE FROM piloto WHERE id_pilotos = ?', [id]);
-    // Devolvemos el objeto 'result'. 
-    // Este objeto tiene una propiedad clave llamada 'affectedRows' (filas afectadas).
-    // Si affectedRows es 0, significa que no borró nada (el ID no existía).
-    // Si es 1, significa que lo borró.
+    const [result] = await pool.query(
+        'UPDATE piloto SET deleted_at = NOW() WHERE id_pilotos = ? AND deleted_at IS NULL',
+        [id]
+    );
     return result;
 }
 // UPDATE: Modificar datos de un piloto (Perfil)
 export const modificarPiloto = async (id, data) => {
-    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = data;
+    const fields = [];
+    const values = [];
+    if (data.nombre !== undefined)         { fields.push("nombre = ?");         values.push(data.nombre); }
+    if (data.apellido !== undefined)      { fields.push("apellido = ?");      values.push(data.apellido); }
+    if (data.dni !== undefined)           { fields.push("dni = ?");           values.push(data.dni); }
+    if (data.certificacion !== undefined) { fields.push("certificacion = ?"); values.push(data.certificacion); }
+    if (data.vencimiento_cma !== undefined){ fields.push("vencimiento_cma = ?"); values.push(formatFecha(data.vencimiento_cma)); }
+    if (data.email !== undefined)         { fields.push("email = ?");         values.push(data.email); }
+    if (data.contacto !== undefined)      { fields.push("contacto = ?");      values.push(data.contacto); }
+    if (data.rol !== undefined)           { fields.push("rol = ?");           values.push(data.rol); }
+    if (data.password !== undefined && data.password !== "") { fields.push("password = ?"); values.push(data.password); }
 
-    const query = `
-        UPDATE piloto 
-        SET nombre = ?, 
-            apellido = ?, 
-            dni = ?, 
-            certificacion = ?, 
-            vencimiento_cma = ?, 
-            email = ?, 
-            contacto = ?, 
-            rol = ?
-        WHERE id_pilotos = ?
-    `;
+    if (fields.length === 0) return { affectedRows: 0, warning: "no fields to update" };
 
-    // Pasamos el ID al final porque es el último signo de pregunta (?) en el WHERE
-    const [result] = await pool.query(query, [
-        nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, contacto, rol, id
-    ]);
+    const query = `UPDATE piloto SET ${fields.join(", ")} WHERE id_pilotos = ? AND deleted_at IS NULL`;
+    values.push(id);
 
+    const [result] = await pool.query(query, values);
     return result;
 }

@@ -1,6 +1,8 @@
 import * as model from '../models/drones.model.js'; //
 import multer from "multer";
 
+const ESTADOS_VALIDOS = ["En Servicio", "En Mantenimiento", "Fuera de Servicio"];
+
 // GET ALL
 export const getAllDrones = async (req, res) => {
     try {
@@ -39,6 +41,9 @@ export const crearDron = async (req, res) => {
     if (!matricula || !numero_de_serie || !id_modelo_dron) {
         return res.status(400).json({ error: 'Faltan datos obligatorios (matricula, serie, modelo)' });
     }
+    if (estado && !ESTADOS_VALIDOS.includes(estado)) {
+        return res.status(400).json({ error: `Estado invalido. Valores permitidos: ${ESTADOS_VALIDOS.join(', ')}` });
+    }
 
     try {
         const nuevoDron = await model.crearDron({
@@ -62,7 +67,8 @@ export const crearDron = async (req, res) => {
         const msg = error.code === 'WARN_DATA_TRUNCATED'
             ? 'Uno de los valores no es valido (ej. estado fuera del ENUM permitido)'
             : (error.sqlMessage || 'Error al crear el dron');
-        res.status(500).json({ error: msg, code: error.code });
+        const status = error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500;
+        res.status(status).json({ error: msg, code: error.code });
     }
 };
 
@@ -88,6 +94,10 @@ export const actualizarDron = async (req, res) => {
     const { id } = req.params;
     const { matricula, numero_de_serie, estado, id_modelo_dron, piloto_id, fecha_adquisicion } = req.body || {};
 
+    if (estado && !ESTADOS_VALIDOS.includes(estado)) {
+        return res.status(400).json({ error: `Estado invalido. Valores permitidos: ${ESTADOS_VALIDOS.join(', ')}` });
+    }
+
     // Si multer proceso un archivo, tenemos req.file con el nombre
     const imagen = req.file ? req.file.filename : undefined;
 
@@ -99,6 +109,9 @@ export const actualizarDron = async (req, res) => {
 
         if (result.affectedRows === 0) {
             const actual = await model.getDronById(id);
+            if (!actual) {
+                return res.status(404).json({ error: 'Dron no encontrado' });
+            }
             return res.json({ message: 'Dron sin cambios', dron: actual });
         }
 
@@ -111,7 +124,8 @@ export const actualizarDron = async (req, res) => {
         const msg = error.code === 'WARN_DATA_TRUNCATED'
             ? 'Uno de los valores enviados no es valido para el campo correspondiente (ej. estado fuera del ENUM)'
             : (error.sqlMessage || 'Error al actualizar el dron');
-        res.status(500).json({ error: msg, code: error.code });
+        const status = error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500;
+        res.status(status).json({ error: msg, code: error.code });
     }
 };
 

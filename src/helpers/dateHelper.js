@@ -1,4 +1,6 @@
 export const formatFecha = (fecha) => {
     if (!fecha) return null;
-    return new Date(fecha).toISOString().slice(0, 19).replace('T', ' ');
+    const d = new Date(fecha);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().slice(0, 19).replace('T', ' ');
 };

@@ -20,7 +20,7 @@ router.get('/pilotos/search',verificarToken, searchPiloto);
 
 //Metodo GET por ID
 
-router.get('/pilotos/:id_pilotos',verificarToken, getPilotoByID);
+router.get('/pilotos/:id',verificarToken, getPilotoByID);
 
 
 ////////// metodo POST ///////////

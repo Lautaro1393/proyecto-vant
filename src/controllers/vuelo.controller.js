@@ -26,7 +26,7 @@ export const getVueloById = async (req, res) => {
 };
 
 export const crearVuelo = async (req, res) => {
-    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos } = req.body;
+    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id } = req.body;
 
     if (!fecha || !coordenadas || !tiempo_de_vuelo || !proposito || !clima) {
         return res.status(400).json({
@@ -50,6 +50,14 @@ export const crearVuelo = async (req, res) => {
     if (!model.TIEMPO_REGEX.test(tiempo_de_vuelo)) {
         return res.status(400).json({
             error: 'tiempo_de_vuelo debe tener formato HH:MM:SS (ej: 00:25:00)'
+        });
+    }
+
+    const faltantes = await model.validarFKsVuelo(drones, baterias, pilotos, previsto_id);
+    if (Object.keys(faltantes).length > 0) {
+        return res.status(400).json({
+            error: 'Referencias invalidas',
+            detalle: faltantes
         });
     }
 
@@ -82,7 +90,11 @@ export const crearVuelo = async (req, res) => {
     } catch (error) {
         if (conn) await conn.rollback();
         console.error(error);
-        res.status(500).json({ error: 'Error al crear el vuelo' });
+        const status = error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500;
+        const msg = error.code === 'ER_NO_REFERENCED_ROW_2'
+            ? 'Una referencia (dron, bateria, piloto, previsto) no existe'
+            : (error.sqlMessage || 'Error al crear el vuelo');
+        res.status(status).json({ error: msg, code: error.code });
     } finally {
         if (conn) conn.release();
     }
@@ -90,7 +102,7 @@ export const crearVuelo = async (req, res) => {
 
 export const actualizarVuelo = async (req, res) => {
     const { id } = req.params;
-    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos } = req.body;
+    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id } = req.body;
 
     if (!fecha || !coordenadas || !tiempo_de_vuelo || !proposito || !clima) {
         return res.status(400).json({ error: 'Faltan datos obligatorios del vuelo' });
@@ -102,6 +114,15 @@ export const actualizarVuelo = async (req, res) => {
     }
     if (!model.CLIMAS_VALIDOS.includes(clima)) {
         return res.status(400).json({ error: 'Clima invalido' });
+    }
+    if (!model.TIEMPO_REGEX.test(tiempo_de_vuelo)) {
+        return res.status(400).json({
+            error: 'tiempo_de_vuelo debe tener formato HH:MM:SS (ej: 00:25:00)'
+        });
+    }
+    const faltantesPut = await model.validarFKsVuelo(drones, baterias, pilotos, null);
+    if (Object.keys(faltantesPut).length > 0) {
+        return res.status(400).json({ error: 'Referencias invalidas', detalle: faltantesPut });
     }
 
     let conn;
@@ -124,7 +145,11 @@ export const actualizarVuelo = async (req, res) => {
     } catch (error) {
         if (conn) await conn.rollback();
         console.error(error);
-        res.status(500).json({ error: 'Error al actualizar el vuelo' });
+        const status = error.code === 'ER_NO_REFERENCED_ROW_2' ? 400 : 500;
+        const msg = error.code === 'ER_NO_REFERENCED_ROW_2'
+            ? 'Una referencia (dron, bateria, piloto) no existe'
+            : (error.sqlMessage || 'Error al actualizar el vuelo');
+        res.status(status).json({ error: msg, code: error.code });
     } finally {
         if (conn) conn.release();
     }
