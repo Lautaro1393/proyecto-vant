@@ -363,6 +363,35 @@
 }
 
 /* ============================================================
+   AVATAR — iniciales para pilotos
+   ============================================================ */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border: 1px solid var(--primary-dim);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  user-select: none;
+}
+.avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+.avatar--xl {
+  width: 120px;
+  height: 120px;
+  font-size: 42px;
+  background: var(--surface-lowest);
+}
+
+/* ============================================================
    FILTER CHIPS — scrolleable horizontal
    ============================================================ */
 .filter-chips {

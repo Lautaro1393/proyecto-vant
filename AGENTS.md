@@ -43,10 +43,21 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 5. `npm run dev`
 6. Smoke test: `node src/scripts/test-db.js` (debe listar 10 tablas)
 
+## Remote / Auth
+- **Remote URL**: SSH (`git@github.com:Lautaro1393/proyecto-vant.git`) — el push/pull NO requiere PAT
+- **SSH key del usuario**: `~/.ssh/Dell-LinuxMint` (ED25519, ya agregada a GitHub)
+- **PAT anterior**: regenerado y revocado en https://github.com/settings/tokens (no exponer nunca uno nuevo en URLs de `git push` ni en el chat)
+- **Regla para IAs**: usar `git push origin main` a secas, NUNCA `https://x-access-token:PAT@...`
+
 ## Modules Status
 - **Etapa 1 (Previstos)**: Completa
 - **Etapa 2 (Vuelos)**: Completa - `src/models/vuelo.model.js`, `src/controllers/vuelo.controller.js`, `src/routes/vuelo.routes.js`
+- **Etapa 3 (Drones)**: Completa (frontend + backend con imagen via multer)
+- **Etapa 4.1 (Pilotos)**: Pendiente - backend listo (B1/B6/B10 de 5.1 aplicados), falta frontend (3 vistas + 4 rutas)
+- **Etapa 5.1 (Backend bugs)**: Completa - commit `4fda7c2` con 12 fixes (B1, B2, B3, B4, B5, B6, B7, B8, B10, B11, B12, B17)
 - Ver plan detallado y estado en `Plan/plan-modulo-vuelos.md`
+- Ver analisis de bugs en `Plan/bugs-analisis.md`
+- Ver handoff para IAs en `Plan/handoff-frontend.md`
 
 ## Endpoints Map (resumen)
 ### Auth
@@ -73,6 +84,8 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 - `AGENTS.md` (este archivo) - convenciones y setup
 - `Spec.md` - especificacion completa del sistema
 - `Plan/plan-modulo-vuelos.md` - plan vivo de la Etapa 2 (marcado el progreso)
+- `Plan/handoff-frontend.md` - handoff con estado del frontend y etapas pendientes
+- `Plan/bugs-analisis.md` - lista de bugs B1-B20 con fixes aplicados y pendientes
 - `.agents/skills/` - skills de opencode (backend patterns, best practices, express)
 - `.agents/skills-lock.json` - lockfile de las skills
 - `opencode.json` - configuracion de MCPs (Railway)

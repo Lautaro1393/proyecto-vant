@@ -40,10 +40,10 @@ export const searchPiloto = async (req, res) => {
 // ////////// GET BY ID //////////
 
 export const getPilotoByID = async (req, res) => {
-    const { id_pilotos } = req.params; // Viene de la URL /pilotos/1
+    const { id } = req.params;
 
     try {
-        const piloto = await model.getPilotoByID(id_pilotos);
+        const piloto = await model.getPilotoByID(id);
 
         if (!piloto) {
             return res.status(404).json({ error: 'Piloto no encontrado' });
@@ -59,29 +59,35 @@ export const getPilotoByID = async (req, res) => {
 //////////////// CREAR PILOTO (POST) //////////////
 
 export const crearPiloto = async (req, res) => {
-    //1 Recepcion de datos
     const {nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = req.body;
-    //2. Validacion basica
     if (!email || !password || !nombre || !rol){
         return res.status(400).json({error: 'Faltan campos obligatorios (email, password, nombre y rol)'})
     }
+    const dniNum = parseInt(dni, 10);
+    if (!dniNum || isNaN(dniNum) || dniNum <= 0 || String(dni).trim() !== String(dniNum)) {
+        return res.status(400).json({ error: 'DNI invalido (debe ser numerico, sin espacios ni guiones)' });
+    }
+    let contactoNum = null;
+    if (contacto !== undefined && contacto !== null && contacto !== "") {
+        contactoNum = parseInt(contacto, 10);
+        if (isNaN(contactoNum) || String(contacto).trim() !== String(contactoNum)) {
+            return res.status(400).json({ error: 'Contacto invalido (debe ser numerico, sin prefijos ni guiones)' });
+        }
+    }
     try {
-        //3. encriptacion de contraseña
         const salt = await bcrypt.genSalt(10)
-        const passwordHash = await bcrypt.hash(password, salt); // encriptamos
-        //4. Preparamos los datos para el modelo (usando la pass ya encriptada)
+        const passwordHash = await bcrypt.hash(password, salt);
         const nuevoPilotoData = {
-            nombre, apellido, dni, certificacion, vencimiento_cma, email, password: passwordHash,
-            contacto, rol
+            nombre, apellido, dni: dniNum, certificacion, vencimiento_cma, email, password: passwordHash,
+            contacto: contactoNum, rol
         };
-        //5. llamada al modelo
         const resultado = await model.crearPiloto(nuevoPilotoData);
-        //6. Respuesta exitosa (201 Created)
         console.log(`[POST] Piloto creado ID: ${resultado.id_pilotos}`);
-        res.status(201).json(resultado);
+        const pilotoSinPass = { ...resultado };
+        delete pilotoSinPass.password;
+        res.status(201).json(pilotoSinPass);
     } catch (error){
         console.error(error);
-        // Si el error es por email duplicado (Codigo ER_DUP_ENTRY de MySQL)
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(400).json({error: 'El email ya esta registrado'})
         }
@@ -112,25 +118,40 @@ export const borrarPiloto = async (req, res)=>{
 
 export const modificarPiloto = async (req,res) => {
     const {id} = req.params;
-    // Obtenemos los datos del body (sin password)
-   const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = req.body; 
-   try {
-    // Llamamos al modelo
-    const result = await model.modificarPiloto(id, {nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol});
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = req.body;
 
-    // Verificamos si se toco alguna fila
-    if (result.affectedRows === 0){
-        return res.status(404).json({error:"Piloto no encontrado"})
+    const data = { nombre, apellido, certificacion, vencimiento_cma, email, rol };
+    if (dni !== undefined) {
+        const dniNum = parseInt(dni, 10);
+        if (!dniNum || isNaN(dniNum) || dniNum <= 0) {
+            return res.status(400).json({ error: 'DNI invalido (debe ser numerico)' });
+        }
+        data.dni = dniNum;
+    }
+    if (contacto !== undefined) {
+        let contactoNum = null;
+        if (contacto !== null && contacto !== "") {
+            contactoNum = parseInt(contacto, 10);
+            if (isNaN(contactoNum)) {
+                return res.status(400).json({ error: 'Contacto invalido (debe ser numerico, sin prefijos ni guiones)' });
+            }
+        }
+        data.contacto = contactoNum;
     }
 
-    // Armamos el objeto de respuesta
-    const pilotoActualizado = {id_pilotos: id, ...req.body};
-
-    console.log(`[PUT] Piloto con ID ${id} actualizado`);
-    res.json({message: "Piloto actualizado correctamente", piloto:pilotoActualizado});
-
-   } catch(error){
-    console.error(error);
-    res.status(500).json({error: 'Error al actualizar el piloto'})
-   }
+    try {
+        const result = await model.modificarPiloto(id, data);
+        if (result.affectedRows === 0){
+            return res.status(404).json({error:"Piloto no encontrado"})
+        }
+        const idNum = parseInt(id, 10);
+        const bodySinPass = { ...req.body };
+        delete bodySinPass.password;
+        const pilotoActualizado = {id_pilotos: idNum, ...bodySinPass};
+        console.log(`[PUT] Piloto con ID ${id} actualizado`);
+        res.json({message: "Piloto actualizado correctamente", piloto:pilotoActualizado});
+    } catch(error){
+        console.error(error);
+        res.status(500).json({error: 'Error al actualizar el piloto'})
+    }
 }
