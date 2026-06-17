@@ -74,6 +74,7 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 
 ## Scripts (utilitarios en `src/scripts/`)
 - `test-db.js` - Overview general: conexion + listado de tablas + `SELECT * LIMIT 5` por tabla + conteos
+- `test-railway.js` - Diagnostico de conexion a Railway MySQL: ping, version, host, latency, schemas, tablas, conteos
 - `inspect-vuelo-schema.js` - Diagnostico fino de las 4 tablas del modulo Vuelos + verifica columnas `horas_vuelo_acum`
 - `migrate-vuelo.js` - Aplica ALTERs del modulo Vuelos. Idempotente (chequea antes de aplicar)
 - `seed-vuelos.js` - Crea 5 vuelos de prueba via API (necesita server corriendo en :3000)
