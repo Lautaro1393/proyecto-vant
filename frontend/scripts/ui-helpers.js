@@ -86,6 +86,11 @@ export const formatDateInput = (iso) => {
   return d.toISOString().slice(0, 10);
 };
 
+export const parseVueloIds = (csv) => {
+  if (csv == null) return [];
+  return String(csv).split(",").map((s) => Number(s.trim())).filter(Boolean);
+};
+
 export const segBar = (pct, total = 10) => {
   const on = Math.round((pct / 100) * total);
   const segs = Array.from({ length: total }, (_, i) => {

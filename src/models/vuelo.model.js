@@ -44,7 +44,7 @@ export const getVueloById = async (id) => {
         [id]
     );
     const [baterias] = await pool.query(
-        `SELECT b.id_bateria, b.numero_de_serie, b.estado
+        `SELECT b.id_bateria, b.numero_de_serie, b.estado, b.ciclos_de_carga, b.capacidad, b.voltage
          FROM vuelo_baterias vb
          JOIN bateria b ON b.id_bateria = vb.bateria_id
          WHERE vb.vuelo_id = ?`,

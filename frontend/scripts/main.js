@@ -8,6 +8,8 @@ import { renderDronesForm } from "./views/drones-form.js";
 import { renderPilotosList } from "./views/pilotos-list.js";
 import { renderPilotoDetail } from "./views/piloto-detail.js";
 import { renderPilotosForm } from "./views/pilotos-form.js";
+import { renderVuelosList } from "./views/vuelos-list.js";
+import { renderVueloDetail } from "./views/vuelo-detail.js";
 
 const requireAuth = async (handler) => {
   if (!isLoggedIn()) {
@@ -30,5 +32,8 @@ route("/pilotos",          () => requireAuth(() => renderPilotosList(document.ge
 route("/pilotos/new",      () => requireAuth(() => renderPilotosForm(document.getElementById("root"), { id: null })));
 route("/pilotos/:id",      ({ params }) => requireAuth(() => renderPilotoDetail(document.getElementById("root"), params.id)));
 route("/pilotos/:id/edit", ({ params }) => requireAuth(() => renderPilotosForm(document.getElementById("root"), { id: params.id })));
+
+route("/vuelos",          () => requireAuth(() => renderVuelosList(document.getElementById("root"))));
+route("/vuelos/:id",      ({ params }) => requireAuth(() => renderVueloDetail(document.getElementById("root"), params.id)));
 
 start(isLoggedIn() ? "/dashboard" : "/login");
