@@ -17,6 +17,8 @@ import { renderMantenimientosForm } from "./views/mantenimientos-form.js";
 import { renderPrevistosList } from "./views/previstos-list.js";
 import { renderPrevistoDetail } from "./views/previsto-detail.js";
 import { renderPrevistosForm } from "./views/previstos-form.js";
+import { renderModelosList } from "./views/modelos-list.js";
+import { renderModelosForm } from "./views/modelos-form.js";
 
 const requireAuth = async (handler) => {
   if (!isLoggedIn()) {
@@ -54,5 +56,9 @@ route("/previstos",          () => requireAuth(() => renderPrevistosList(documen
 route("/previstos/new",      () => requireAuth(() => renderPrevistosForm(document.getElementById("root"), { id: null })));
 route("/previstos/:id",      ({ params }) => requireAuth(() => renderPrevistoDetail(document.getElementById("root"), params.id)));
 route("/previstos/:id/edit", ({ params }) => requireAuth(() => renderPrevistosForm(document.getElementById("root"), { id: params.id })));
+
+route("/modelos",          () => requireAuth(() => renderModelosList(document.getElementById("root"))));
+route("/modelos/new",      () => requireAuth(() => renderModelosForm(document.getElementById("root"), { id: null })));
+route("/modelos/:id/edit", ({ params }) => requireAuth(() => renderModelosForm(document.getElementById("root"), { id: params.id })));
 
 start(isLoggedIn() ? "/dashboard" : "/login");

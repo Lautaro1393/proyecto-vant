@@ -1,11 +1,12 @@
 import { Router } from 'express';
-import { listarModelos, crearModelo } from '../controllers/modelo_dron.controller.js';
+import { listarModelos, crearModelo, actualizarModelo, borrarModelo } from '../controllers/modelo_dron.controller.js';
 import { verificarToken, verificarAdmin } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Rutas
-router.get('/modelos', verificarToken, listarModelos); // Cualquiera logueado puede verlos
-router.post('/modelos', verificarToken, verificarAdmin, crearModelo); // Solo admin crea
+router.get('/modelos', verificarToken, listarModelos);
+router.post('/modelos', verificarToken, verificarAdmin, crearModelo);
+router.put('/modelos/:id', verificarToken, verificarAdmin, actualizarModelo);
+router.delete('/modelos/:id', verificarToken, verificarAdmin, borrarModelo);
 
 export default router;
