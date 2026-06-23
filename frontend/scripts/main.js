@@ -14,6 +14,9 @@ import { renderVuelosForm } from "./views/vuelos-form.js";
 import { renderMantenimientosList } from "./views/mantenimientos-list.js";
 import { renderMantenimientoDetail } from "./views/mantenimiento-detail.js";
 import { renderMantenimientosForm } from "./views/mantenimientos-form.js";
+import { renderPrevistosList } from "./views/previstos-list.js";
+import { renderPrevistoDetail } from "./views/previsto-detail.js";
+import { renderPrevistosForm } from "./views/previstos-form.js";
 
 const requireAuth = async (handler) => {
   if (!isLoggedIn()) {
@@ -46,5 +49,10 @@ route("/mantenimientos",          () => requireAuth(() => renderMantenimientosLi
 route("/mantenimientos/new",      () => requireAuth(() => renderMantenimientosForm(document.getElementById("root"), { id: null })));
 route("/mantenimientos/:id",      ({ params }) => requireAuth(() => renderMantenimientoDetail(document.getElementById("root"), params.id)));
 route("/mantenimientos/:id/edit", ({ params }) => requireAuth(() => renderMantenimientosForm(document.getElementById("root"), { id: params.id })));
+
+route("/previstos",          () => requireAuth(() => renderPrevistosList(document.getElementById("root"))));
+route("/previstos/new",      () => requireAuth(() => renderPrevistosForm(document.getElementById("root"), { id: null })));
+route("/previstos/:id",      ({ params }) => requireAuth(() => renderPrevistoDetail(document.getElementById("root"), params.id)));
+route("/previstos/:id/edit", ({ params }) => requireAuth(() => renderPrevistosForm(document.getElementById("root"), { id: params.id })));
 
 start(isLoggedIn() ? "/dashboard" : "/login");
