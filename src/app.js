@@ -1,3 +1,6 @@
+import process from 'node:process';
+process.env.TZ = 'UTC';
+
 import express from'express'
 import cors from 'cors' // para solicitudes entre distintos dominios si uso el navegador
 import pilotosRouter from '../src/routes/piloto.router.js' // importo el router
