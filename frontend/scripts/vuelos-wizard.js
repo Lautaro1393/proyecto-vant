@@ -504,7 +504,25 @@ export const createWizard = ({ root, isEdit = false, initialData = {}, catalogs 
       <div id="wiz-footer">${renderFooter(step, busy, isEdit)}</div>
     `;
     bindFooter();
+    bindStepper();
     bindStepBody();
+  };
+
+  const bindStepper = () => {
+    root.querySelectorAll("[data-jump]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (busy) return;
+        const target = Number(el.dataset.jump);
+        if (Number.isNaN(target) || target === step) return;
+        if (target < step) { goTo(target); return; }
+        for (let i = 0; i < target; i++) {
+          const eList = validateStep(i, draft);
+          if (eList.length) { errs = eList; step = i; render(); return; }
+        }
+        goTo(target);
+      });
+    });
   };
 
   const bindStepBody = () => {
@@ -546,15 +564,17 @@ export const createWizard = ({ root, isEdit = false, initialData = {}, catalogs 
     });
   };
 
+  const goTo = (n) => {
+    if (busy) return;
+    if (n >= 0 && n < STEPS.length) { step = n; errs = []; render(); }
+  };
+
   const api = {
     getDraft: () => ({ ...draft, drones: [...draft.drones], baterias: [...draft.baterias], pilotos: [...draft.pilotos] }),
     getStep: () => step,
     getStepCount: () => STEPS.length,
     setDraft: (patch) => { draft = sanitize({ ...draft, ...patch }); },
-    goTo: (n) => {
-      if (busy) return;
-      if (n >= 0 && n < STEPS.length) { step = n; errs = []; render(); }
-    },
+    goTo,
     reRender: () => render(),
     buildPayload,
     destroy: () => { root.innerHTML = ""; },

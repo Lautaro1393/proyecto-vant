@@ -37,5 +37,6 @@ route("/pilotos/:id/edit", ({ params }) => requireAuth(() => renderPilotosForm(d
 route("/vuelos",          () => requireAuth(() => renderVuelosList(document.getElementById("root"))));
 route("/vuelos/new",      () => requireAuth(() => renderVuelosForm(document.getElementById("root"), { id: null })));
 route("/vuelos/:id",      ({ params }) => requireAuth(() => renderVueloDetail(document.getElementById("root"), params.id)));
+route("/vuelos/:id/edit", ({ params }) => requireAuth(() => renderVuelosForm(document.getElementById("root"), { id: params.id })));
 
 start(isLoggedIn() ? "/dashboard" : "/login");
