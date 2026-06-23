@@ -1,170 +1,145 @@
-# Plan de continuación — Sesión siguiente
+# Plan de continuación — Sesión 2026-06-24
 
-> Estado del proyecto: **Etapas 1, 2, 3, 4.1, 4.2, 4.3 completas**. Sistema funcional end-to-end con 6 entidades (Drones, Pilotos, Vuelos, Mantenimientos, Previstos, Modelos) y suite de smoke tests.
+> Estado actual: **Etapas 1, 2, 3, 4.1, 4.2, 4.3 completas**. Manual test E2E pasó. B1 (pool keepAlive) y B2 (TZ UTC) fixeados y pusheados. Nav completa con 7 items, sin 404s.
 >
-> Última sesión: 4.3D (dashboard) + commit `6f0f6f6` en `main`.
+> Última sesión: 9a836ca — B1+B2+nav
 
 ---
 
-## 🎯 Opciones para la próxima sesión
+## ✅ Lo que se hizo desde el plan anterior
 
-| Opción | Qué cubre | Tiempo | Impacto |
-|---|---|---|---|
-| **A. Polish + UX** (Etapa 6) | Theme switcher, loading skeletons, error boundary, búsqueda global, export CSV | ~3-4 h | UX alto |
-| **B. Quality / Testing** | CI workflow, fix smoke-test Connection-lost, fix TZ off-by-one, .gitignore, handoff cleanup | ~2-3 h | Estabilidad alta |
-| **C. Deploy a producción** | Setup Railway para backend, configurar env vars, deploy + smoke test en vivo | ~2-3 h | Habilita uso real |
-| **D. Polish selectivo** | Solo theme switcher + loading skeletons (lo más visible) | ~1-1.5 h | Quick win visual |
-
-**Mi recomendación**: combinar **B** (primero, ~1.5h) → **D** (después, ~1h) → break → **A** (resto del polish).
+| Item | Estado | Commit |
+|---|---|---|
+| B1: pool keepAlive | ✅ Done (verificado: 6/6 OK tras 65s idle) | `9a836ca` |
+| B2: TZ UTC | ✅ Done (verificado: fechas sin off-by-one) | `9a836ca` |
+| B4: bugs-analisis.md | ✅ Already committed en sesión 4.3 | (anterior) |
+| BUG-1: PWR link roto | ✅ Fixed (removido del nav) | `9a836ca` |
+| BUG-2: Nav incompleta | ✅ Fixed (3 items agregados: TALLER, AGENDA, MODELOS) | `9a836ca` |
+| Manual test E2E | ✅ Done — todas las entidades verificadas | (sin commit, fue test) |
 
 ---
 
-## 📋 Plan detallado por opción
+## ⏳ Pendientes del plan original (lo que falta)
 
-### Opción B — Quality / Testing (recomendado primero, ~1.5-2h)
-
-#### B1. Fix del "Connection lost" en smoke tests (~30 min)
-- **Síntoma**: tras varios minutos idle, el pool de MySQL de mysql2 se cae, el smoke test falla en TC-VUL-04/05 con "Cannot read properties of undefined".
-- **Causa**: conexiones idle en Railway cierran por timeout. El pool no reintenta.
-- **Fix**: agregar `enableKeepAlive: true` y reconnect logic en `src/config/database.js`. O usar `pool.on('connection', ...)` para reintentar en error transitorio.
-- **Criterio de aceptación**: smoke test pasa 6/6 sin importar cuánto tiempo estuvo el server idle.
-
-#### B2. Fix TZ off-by-one en fechas (~30 min)
-- **Síntoma**: un vuelo creado con fecha `2026-06-23` se muestra como `2026-06-22` en el detail. Idem para mantenimiento, previsto.
-- **Causa**: Node TZ ≠ MySQL TZ. Las DATETIME se almacenan naive pero se interpretan con TZ del proceso Node.
-- **Fix opciones**:
-  - A) Forzar TZ del proceso a UTC con `process.env.TZ = 'UTC'` en `src/app.js` (un cambio de 1 línea, no invasivo)
-  - B) Cambiar columnas a `DATE` (no aplica para `datetime`)
-  - C) Formatear fechas explícitamente en `formatDate()` (más invasivo)
-- **Recomendación**: opción A. Una línea, fix global, sin tocar otras partes.
-- **Criterio de aceptación**: `formatDate(fecha)` en cualquier vista devuelve la misma fecha que se envió en POST.
-
-#### B3. `.gitignore` cleanup (~10 min)
-- **Issue**: hay 20 imágenes `uploads/imagen-*.{png,jpeg,gif}` sin trackear. El directorio `uploads/` está en `.gitignore`? verificar.
+### **B3** — `.gitignore` cleanup (~10 min)
+- **Issue**: hay 20 imágenes `uploads/imagen-*.{png,jpeg,gif}` y `.opencode/` sin trackear
+- **Causa**: el `.gitignore` actual solo tiene `opencode.json` (con punto no, sin punto), no tiene `uploads/` ni `.opencode/`
 - **Fix**:
-  - Verificar `uploads/` en `.gitignore` (probablemente está — la app lo sirve estáticamente pero no commitea)
-  - Limpiar archivos huérfanos: `rm uploads/imagen-*.{png,jpeg,gif}` o agregarlos a `.gitignore` explícitamente
-  - Decidir: ¿queremos gitignorear `.opencode/` también?
-- **Criterio de aceptación**: `git status` limpio, sin archivos spurious.
+  - Agregar al `.gitignore`:
+    - `uploads/imagen-*` (los archivos de prueba de drones)
+    - `/.opencode/` (config local de opencode con MCPs/credenciales)
+  - Considerar: ¿borrar los archivos existentes con `git clean` o dejarlos?
+  - Mantener el archivo `uploads/` tracked (no tiene nada útil, pero el server lo sirve estáticamente)
+- **Criterio de aceptación**: `git status` limpio, solo muestra los archivos intencionalmente untracked
 
-#### B4. Agregar `Plan/bugs-analisis.md` al repo (~5 min)
-- **Issue**: el archivo existe y está actualizado, pero figura como untracked. Como documenta el estado de bugs, debería estar versionado.
-- **Fix**: `git add Plan/bugs-analisis.md` + commit "docs: agregar bugs-analisis.md al repo"
-- **Criterio de aceptación**: `git log -- Plan/bugs-analisis.md` muestra el commit.
-
-#### B5. Documentar SSH key en `AGENTS.md` (~5 min)
-- **Issue**: el SSH agent no carga la key `~/.ssh/Dell-LinuxMint` por defecto. Cada push requiere `GIT_SSH_COMMAND="ssh -i ~/.ssh/Dell-LinuxMint"`.
-- **Fix**: agregar nota en `AGENTS.md` seccion "Remote / Auth" indicando que la key debe estar cargada con `ssh-add`, y el workaround con `GIT_SSH_COMMAND`.
-- **Criterio de aceptación**: la nota está en AGENTS.md y un agente nuevo lo lee antes de pushear.
+### **B5** — Doc SSH key en `AGENTS.md` (~5 min)
+- **Issue**: el SSH agent no carga la key `~/.ssh/Dell-LinuxMint` por defecto
+- **Causa**: cada push necesita `GIT_SSH_COMMAND="ssh -i ~/.ssh/Dell-LinuxMint"`, sino el agent rechaza la firma
+- **Fix**: agregar a `AGENTS.md` seccion "Remote / Auth" una nota explicando que la key debe estar cargada con `ssh-add ~/.ssh/Dell-LinuxMint`, o usar el flag `GIT_SSH_COMMAND` como workaround
+- **Criterio de aceptación**: la nota está en AGENTS.md
 
 ---
 
-### Opción D — Polish selectivo (quick wins visuales, ~1-1.5h)
+## 🎯 Polish + features (lo más jugoso)
 
-#### D1. Theme switcher en header (~30 min)
-- **Estado actual**: `tokens.css` ya define `--data-theme="night"` y `--data-theme="desert"` además del default (Tactical Olive).
+### **D1** — Theme switcher en header (~30 min)
+- **Estado**: `tokens.css` ya define `--data-theme="night"` y `--data-theme="desert"`. Solo falta el toggle en UI.
 - **Plan**:
-  - Agregar botón en el header (entre actions y logout)
-  - Ciclar entre 3 temas al click
+  - Agregar botón en el header (entre actions y logout) con icono
+  - Ciclar entre 3 temas: default (Tactical Olive) → night (verde-azulado oscuro) → desert (arena)
   - Persistir en `localStorage.setItem("vant.theme", theme)`
-  - Aplicar en `app.js` al inicio: leer localStorage y setear `document.documentElement.dataset.theme`
-- **Criterio de aceptación**: el botón cicla entre 3 temas, el estado persiste al recargar, los CSS variables se aplican.
+  - Aplicar en `app.js` (o `main.js`) al inicio: leer localStorage y setear `document.documentElement.dataset.theme`
+- **Criterio de aceptación**: el botón cicla entre 3 temas, el estado persiste al recargar, los CSS variables se aplican (background, cards, text cambian)
 
-#### D2. Loading skeletons (~30 min)
-- **Estado actual**: las vistas usan `<span class="spinner"></span>` mientras cargan. Funciona pero es básico.
-- **Plan**: agregar `<div class="skeleton skeleton--card"></div>` etc. en CSS, con animación shimmer. Usar en dashboards y list views mientras cargan catálogos.
+### **D2** — Loading skeletons (~30 min)
+- **Estado**: las vistas usan `<span class="spinner"></span>` mientras cargan. Funciona pero es básico.
+- **Plan**:
+  - Agregar `.skeleton` CSS con animación shimmer (background-position transition)
+  - Usar en dashboards y list views mientras cargan catálogos (reemplazar el spinner por skeletons que se vean como cards vacías con shimmer)
 - **Criterio de aceptación**: skeleton aparece brevemente, luego se reemplaza con contenido real. Sin "flash" de contenido vacío.
 
-#### D3. Error boundary global en router (~20 min)
-- **Estado actual**: si una vista tira excepción durante render, la app puede quedar en estado roto.
-- **Plan**: envolver el `dispatch()` en `router.js` con try/catch. En catch, renderizar un error-banner global y log a console.
-- **Criterio de aceptación**: forzar un error en una vista (e.g., retornar `null` accidentalmente) → usuario ve mensaje claro, app sigue funcionando al cambiar de ruta.
+### **D3** — Error boundary global en router (~20 min)
+- **Estado**: si una vista tira excepción durante render, la app puede quedar en estado roto.
+- **Plan**:
+  - Envolver el `dispatch()` en `router.js` con try/catch
+  - En catch, renderizar un error-banner global y log a console
+  - El handler de error debe ser el mismo que ya tenemos para 404 (navigate a una vista de error)
+- **Criterio de aceptación**: forzar un error en una vista (e.g., retornar `null` accidentalmente) → usuario ve mensaje claro, app sigue funcionando al cambiar de ruta
 
 ---
 
-### Opción A — Polish completo (resto de Etapa 6, ~2-3h)
+### **A1** — Búsqueda global en dashboard (~45 min)
+- **Estado**: la nav tiene 7 items, pero no hay búsqueda global
+- **Plan**:
+  - Input en el header con shortcut "/" (o `Cmd+K`)
+  - Busca contra drones (matricula, serie), pilotos (nombre, dni, email), baterias (serie), vuelos (proposito), mantenimientos (descripcion), previstos (nombre_clave)
+  - Resultados en dropdown debajo del input, agrupados por tipo
+  - Click en un resultado navega al detail
+- **Criterio de aceptación**: typing "ABC" filtra items relevantes en <200ms (5 endpoints en paralelo), resultados agrupados por tipo
 
-#### A1. Búsqueda global en dashboard (~45 min)
-- **Plan**: input en el header con shortcuts. Busca contra drones (matricula), pilotos (nombre/dni), baterias (serie), vuelos (proposito). Resultados en dropdown.
-- **Criterio de aceptación**: typing "ABC" filtra a items relevantes en <100ms.
+### **A2** — Export CSV desde listados (~1h)
+- **Estado**: no hay export, los usuarios tienen que copiar a mano
+- **Plan**:
+  - En `vuelos-list.js`, `drones-list.js`, `pilotos-list.js`, `mantenimientos-list.js`, `previstos-list.js`: agregar botón "EXPORTAR CSV" en el headerActions (admin only)
+  - Helper genérico `exportToCSV(rows, filename)` que genera CSV client-side desde el array actual y dispara download
+  - CSV con headers en primera línea, escape de comas/comillas
+- **Criterio de aceptación**: el CSV se descarga, abre correctamente en Excel/LibreOffice con todas las columnas, caracteres especiales escapados
 
-#### A2. Export CSV desde listados (~1h)
-- **Plan**: en `vuelos-list.js`, `drones-list.js`, `mantenimientos-list.js`, agregar botón "EXPORTAR CSV" en el headerActions. Genera un CSV client-side desde el array actual y lo descarga.
-- **Criterio de aceptación**: el CSV se descarga, abre correctamente en Excel/LibreOffice con todas las columnas.
-
-#### A3. Service worker (modo offline básico, ~1h)
-- **Plan**: registrar `sw.js` que cachee `index.html`, `styles/*.css`, `scripts/main.js`. Network-first para la API, cache-first para assets. Mensaje "OFFLINE" si falla el fetch.
-- **Criterio de aceptación**: con network caído, el dashboard se sigue mostrando (al menos la última versión cacheada).
-
----
-
-### Opción C — Deploy a Railway (opcional, ~2-3h)
-
-#### C1. Configurar Railway
-- Crear servicio backend en Railway (Node.js)
-- Conectar MySQL ya hosteada o usar plugin MySQL
-- Setear env vars (`DB_*`, `JWT_SECRET`, `PORT`)
-- Configurar start command: `node src/app.js`
-
-#### C2. Verificar deploy
-- `curl https://<railway>.up.railway.app/` → 200
-- `curl https://<railway>.up.railway.app/api/vuelos -H "Authorization: Bearer ..."` → JSON
-- Smoke test adaptado para apuntar a Railway en vez de localhost
-
-#### C3. Actualizar README
-- Sección "Deploy" con instrucciones paso a paso
-- URL de producción
+### **A3** — Service worker (modo offline básico) (~1h)
+- **Estado**: no hay service worker, la app no funciona offline
+- **Plan**:
+  - Registrar `sw.js` en `main.js` (después de `start()`)
+  - `sw.js` cachea `index.html`, `styles/*.css`, `scripts/main.js`, `scripts/router.js`
+  - Network-first para la API (que probablemente falla offline)
+  - Cache-first para assets estáticos
+  - Mensaje "OFFLINE" si la API falla y no hay cache
+- **Criterio de aceptación**: con network caído, el dashboard se sigue mostrando (al menos la versión cacheada del último load)
 
 ---
 
-## 📌 Orden recomendado
+### **C** — Deploy a Railway (opcional, ~2-3h)
+- **Plan**:
+  - C1: Crear servicio backend en Railway, conectar MySQL plugin o usar la hosteada
+  - C2: Setear env vars (`DB_*`, `JWT_SECRET`, `PORT`), configurar start command `node src/app.js`
+  - C3: Verificar con `curl https://<railway>.up.railway.app/` y smoke tests
+  - C4: Actualizar README con sección "Deploy"
+
+---
+
+## 📌 Orden recomendado para mañana
 
 ```
-Sesión 1 (mañana) — ~2h:
-  Opción B1 (fix connection lost)        30 min
-  Opción B2 (fix TZ off-by-one)         30 min
-  Opción B3 (gitignore)                 10 min
-  Opción B4 (commiteo bugs-analisis)     5 min
-  Opción B5 (doc SSH en AGENTS.md)       5 min
-  Opción D1 (theme switcher)            30 min   ← break visual
+Sesión 1 (~1h):
+  B3 gitignore cleanup                    10 min
+  B5 SSH key doc en AGENTS.md              5 min
+  D1 Theme switcher (quick win visual)    30 min
+  --- break ---
 
-Sesión 2 (siguiente) — ~3-4h:
-  Opción A1 (búsqueda global)           45 min
-  Opción A2 (export CSV)                 1h
-  Opción D2 (loading skeletons)         30 min
-  Opción D3 (error boundary)             20 min
-  Opción A3 (service worker)             1h
+Sesión 2 (~2h):
+  D2 Loading skeletons                    30 min
+  D3 Error boundary                       20 min
+  A1 Búsqueda global                      45 min
+  A2 Export CSV (1/2 listas)               25 min
+  --- break ---
+
+Sesión 3 (~2h):
+  A2 Export CSV (resto de listas)          35 min
+  A3 Service worker                        1h
+  --- opcional ---
+  C Deploy a Railway                       2-3h
 ```
+
+**Total mínimo (sesiones 1+2):** ~3h
+**Total completo (sesiones 1+2+3):** ~5h
 
 ---
 
 ## 🔧 Snippets listos para usar
 
-### B2 — Fix TZ (1 línea en `src/app.js`):
-```js
-process.env.TZ = 'UTC';
-// ... existing code
-const app = express();
+### B3 — `.gitignore` (agregar 2 líneas al final):
 ```
-
-### B1 — Pool keepAlive en `src/config/database.js`:
-```js
-export const pool = createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 10000,
-});
-pool.on('connection', (conn) => {
-  conn.on('error', (err) => {
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-      console.warn('MySQL connection lost, will reconnect on next query');
-    }
-  });
-});
+uploads/imagen-*
+/.opencode/
 ```
 
 ### D1 — Theme switcher en `ui.js`:
@@ -176,46 +151,101 @@ export const setTheme = (t) => {
   document.documentElement.dataset.theme = t;
 };
 // In renderShell headerActions, add:
-// `<button class="btn btn--ghost btn--icon" id="btn-theme" title="Cambiar tema">${getThemeIcon()}</button>`
+// `<button class="btn btn--ghost btn--icon" id="btn-theme" title="Cambiar tema">T</button>`
+// In main.js after start():
+// setTheme(getTheme()); document.getElementById('btn-theme')?.addEventListener('click', () => { const i = THEMES.indexOf(getTheme()); setTheme(THEMES[(i+1) % THEMES.length]); location.reload(); });
+```
+
+### D2 — Skeleton CSS (en `components.css`):
+```css
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-high) 50%, var(--surface) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border: 1px solid var(--outline-variant);
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+```
+
+### D3 — Error boundary en `router.js`:
+```js
+const dispatch = async () => {
+  // ... existing code ...
+  try {
+    const result = await r.handler({ params, path, root });
+    currentTeardown = typeof result === "function" ? result : null;
+  } catch (e) {
+    console.error('[router] Error en vista:', e);
+    root.innerHTML = `<div class="card mt-3"><div class="card__body error-banner">Error inesperado: ${e.message}</div></div>`;
+  }
+};
+```
+
+### A2 — Helper CSV en `ui-helpers.js`:
+```js
+export const exportToCSV = (rows, filename, columns) => {
+  // columns: [{ key: 'matricula', label: 'Matricula' }, ...]
+  const header = columns.map(c => `"${c.label}"`).join(',');
+  const body = rows.map(r => columns.map(c => {
+    const v = r[c.key] ?? '';
+    return `"${String(v).replace(/"/g, '""')}"`;
+  }).join(',')).join('\n');
+  const csv = `${header}\n${body}`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
 ```
 
 ---
 
-## 🧪 Testing strategy antes de cada cambio
+## 🧪 Testing strategy
 
+Antes de cada cambio:
 1. `node --check <files>` para syntax
-2. `node src/scripts/run-smoke-tests.js` para API (debe ser 6/6)
-3. Browser smoke test: 1 happy path de la vista modificada
-4. Visual screenshot si es cambio de UI
+2. `node src/scripts/run-smoke-tests.js` para API (6/6 esperado)
+3. Browser test: 1 happy path de la vista modificada
+4. Screenshot si es cambio de UI
+
+Después de cada cambio:
+- `git status` debe estar limpio (o solo cambios intencionales)
+- Visual check de que no se rompió nada existente
 
 ---
 
-## 📦 Estado actual del repo (para referencia)
+## 🐛 Observaciones pendientes (no críticas)
+
+1. **TZ datetime para previstos**: con TZ=UTC, el datetime se muestra en UTC. Si el usuario escribió "2026-07-01T08:00" local, ahora se muestra "08:00" pero interpretado como UTC. UX improvement: enviar el datetime en UTC desde el frontend, o mostrar la TZ en la UI.
+
+2. **Falta módulo Baterias en frontend**: `/api/baterias` funciona pero no hay vistas. El nav ya no linkea a `/baterias` (BUG-1 fixed). El "Estado de Baterias" del dashboard es la única forma de verlas. Si querés un módulo completo, agregalo (similar a Modelos — list + detail opcional).
+
+3. **17 archivos huérfanos en `uploads/`**: una vez que `.gitignore` tenga `uploads/imagen-*`, no se commitean más. Los actuales se pueden borrar con `rm uploads/imagen-*` o dejar (no molestan).
+
+4. **Plan/next-steps.md queda obsoleto**: este archivo lo reemplaza. Considerar borrarlo o renombrarlo a `next-steps-2026-06-23.md` para historial.
+
+---
+
+## 📦 Estado del repo (para referencia)
 
 **Commits recientes** (del más nuevo al más viejo):
 ```
-6f0f6f6  feat(dashboard):  4.3D
-dec541f  feat(modelos):    4.3C
-3f2e62b  feat(previstos):   4.3B
+9a836ca  fix(stability+nav):  B1 + B2 + nav completa
+5d9ea7d  docs:                Plan/next-steps.md
+6f0f6f6  feat(dashboard):     4.3D
+dec541f  feat(modelos):       4.3C
+3f2e62b  feat(previstos):      4.3B
 52e745e  feat(mantenimientos): 4.3A
-841e313  fix(security):     B6 + B13 + B15
-2d1d477  feat(vuelos):      4.2F
-08c1978  polish(vuelos):    4.2E
-acf7a89  feat(vuelos):      4.2D
-ee6c56f  feat(vuelos):      4.2C
-9844873  feat(vuelos):      4.2B
-5c7053f  fix(security):     2 bugs from smoke tests
-5dfca8f  feat(vuelos):      4.2A
+841e313  fix(security):        B6 + B13 + B15
+2d1d477  feat(vuelos):         4.2F
+08c1978  polish(vuelos):       4.2E
+acf7a89  feat(vuelos):         4.2D
 ```
 
-**Pendientes low-priority** (no bloquean nada):
-- B2, B8 ya fixeados (verificados)
-- B14: XSS latente en renderShell (teórico, valores hardcoded)
-- B16-B20: polish
-- TZ off-by-one (bug pre-existente)
-- Connection lost en smoke tests (pre-existente)
-
-**Files untracked** (decidir qué hacer):
-- `Plan/bugs-analisis.md` → commit (B4)
-- `.opencode/` → gitignore
-- `uploads/imagen-*.{png,jpeg,gif}` → gitignore explícito o limpieza
+**Files untracked** (decidir en B3):
+- `.opencode/`
+- `uploads/imagen-*.{png,jpeg,gif}` (20 archivos)
