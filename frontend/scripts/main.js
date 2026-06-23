@@ -11,6 +11,9 @@ import { renderPilotosForm } from "./views/pilotos-form.js";
 import { renderVuelosList } from "./views/vuelos-list.js";
 import { renderVueloDetail } from "./views/vuelo-detail.js";
 import { renderVuelosForm } from "./views/vuelos-form.js";
+import { renderMantenimientosList } from "./views/mantenimientos-list.js";
+import { renderMantenimientoDetail } from "./views/mantenimiento-detail.js";
+import { renderMantenimientosForm } from "./views/mantenimientos-form.js";
 
 const requireAuth = async (handler) => {
   if (!isLoggedIn()) {
@@ -38,5 +41,10 @@ route("/vuelos",          () => requireAuth(() => renderVuelosList(document.getE
 route("/vuelos/new",      () => requireAuth(() => renderVuelosForm(document.getElementById("root"), { id: null })));
 route("/vuelos/:id",      ({ params }) => requireAuth(() => renderVueloDetail(document.getElementById("root"), params.id)));
 route("/vuelos/:id/edit", ({ params }) => requireAuth(() => renderVuelosForm(document.getElementById("root"), { id: params.id })));
+
+route("/mantenimientos",          () => requireAuth(() => renderMantenimientosList(document.getElementById("root"))));
+route("/mantenimientos/new",      () => requireAuth(() => renderMantenimientosForm(document.getElementById("root"), { id: null })));
+route("/mantenimientos/:id",      ({ params }) => requireAuth(() => renderMantenimientoDetail(document.getElementById("root"), params.id)));
+route("/mantenimientos/:id/edit", ({ params }) => requireAuth(() => renderMantenimientosForm(document.getElementById("root"), { id: params.id })));
 
 start(isLoggedIn() ? "/dashboard" : "/login");

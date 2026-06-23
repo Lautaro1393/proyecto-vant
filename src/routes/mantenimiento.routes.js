@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import { listarMantenimientos, registrarMantenimiento } from '../controllers/mantenimiento.controller.js';
+import { listarMantenimientos, getMantenimientoById, registrarMantenimiento, actualizarMantenimiento, borrarMantenimiento } from '../controllers/mantenimiento.controller.js';
 import { verificarToken, verificarAdmin } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
 router.get('/mantenimientos', verificarToken, listarMantenimientos);
-// Solo admin puede mandar un dron al taller
+router.get('/mantenimientos/:id', verificarToken, getMantenimientoById);
 router.post('/mantenimientos', verificarToken, verificarAdmin, registrarMantenimiento);
+router.put('/mantenimientos/:id', verificarToken, verificarAdmin, actualizarMantenimiento);
+router.delete('/mantenimientos/:id', verificarToken, verificarAdmin, borrarMantenimiento);
 
 export default router;
