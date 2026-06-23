@@ -91,6 +91,19 @@ export const parseVueloIds = (csv) => {
   return String(csv).split(",").map((s) => Number(s.trim())).filter(Boolean);
 };
 
+export const CLIMAS_OPTIONS = [
+  { value: "Despejado",            label: "DESPEJADO" },
+  { value: "Parcialmente Nublado", label: "PARCIALMENTE NUBLADO" },
+  { value: "Nublado",              label: "NUBLADO" },
+  { value: "Lluvia Ligera",        label: "LLUVIA LIGERA" },
+  { value: "Lluvia Fuerte",        label: "LLUVIA FUERTE" },
+  { value: "Viento Fuerte",        label: "VIENTO FUERTE" },
+  { value: "Niebla",               label: "NIEBLA" },
+];
+
+export const TIEMPO_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
+export const COORDS_REGEX = /^-?\d{1,3}\.?\d*,-?\d{1,3}\.?\d*$/;
+
 export const segBar = (pct, total = 10) => {
   const on = Math.round((pct / 100) * total);
   const segs = Array.from({ length: total }, (_, i) => {
