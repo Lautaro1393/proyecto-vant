@@ -2,33 +2,30 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { pool } from '../config/database.js';
 
+const DUMMY_BCRYPT_HASH = '$2b$10$CwTycUXWue0Thq9StjUM0uJ8.4Q8K7fWkL3pM5N6O7P8Q9R0S1T2U';
+
 export const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-        //1. validar que vengan los datos
         if (!email || !password) {
             return res.status(400).json({error: ' Faltan email o password'});
         }
-        //2. Buscar al usuario por email en la BD
         const [rows] = await pool.query('SELECT * FROM piloto WHERE email = ?', [email]);
         const piloto = rows[0];
-        //Si no existe el usuario
-        if (!piloto) {
+
+        // Siempre correr bcrypt.compare (incluso si el email no existe) para
+        // evitar timing attacks que permitan enumerar emails validos.
+        const hashToCheck = piloto ? piloto.password : DUMMY_BCRYPT_HASH;
+        const passwordOk = await bcrypt.compare(password, hashToCheck);
+        if (!piloto || !passwordOk) {
             return res.status(401).json({error:'Credenciales invalidas'});
         }
-        //3. Verificar la contraseña con bcrypt
-        const passwordOk = await bcrypt.compare(password, piloto.password);
-        if (!passwordOk) {
-            return res.status(401).json({error:'Credenciales invalidas'});
-        }
-        //4. Generar el Token JWT
-        //Guardamos en el token el ID y el ROL
+
         const token = jwt.sign(
             {id: piloto.id_pilotos, rol: piloto.rol},
             process.env.JWT_SECRET,
-            { expiresIn: '1h'} // el token se vence en 1h
+            { expiresIn: '1h'}
         );
-        //5. Responder con el token
         res.json({
             message: "Login exitoso",
             token: token,
@@ -44,5 +41,4 @@ export const login = async (req, res) => {
     }
 };
 
-//////////////// MODIFICAR PILOTO (PUT) /////////////
 

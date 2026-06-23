@@ -118,7 +118,7 @@ export const borrarPiloto = async (req, res)=>{
 
 export const modificarPiloto = async (req,res) => {
     const {id} = req.params;
-    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol } = req.body;
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = req.body;
 
     const data = { nombre, apellido, certificacion, vencimiento_cma, email, rol };
     if (dni !== undefined) {
@@ -137,6 +137,13 @@ export const modificarPiloto = async (req,res) => {
             }
         }
         data.contacto = contactoNum;
+    }
+    if (password !== undefined && password !== null && password !== "") {
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Password minimo 6 caracteres' });
+        }
+        const salt = await bcrypt.genSalt(10);
+        data.password = await bcrypt.hash(password, salt);
     }
 
     try {
