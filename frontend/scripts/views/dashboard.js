@@ -37,10 +37,10 @@ export const renderDashboard = async (root) => {
 
       <article class="card card--accent">
         <header class="card__header">
-          <span><span class="card__header-prefix">03</span> PROXIMOS VUELOS</span>
+          <span><span class="card__header-prefix">03</span> VUELOS RECIENTES</span>
           <span class="card__header-id">MOD-02</span>
         </header>
-        <div class="card__body" id="previstos-slot">
+        <div class="card__body" id="recent-flights-slot">
           <span class="spinner"></span>
         </div>
       </article>
@@ -126,22 +126,23 @@ export const renderDashboard = async (root) => {
   }
 
   // Previstos
-  const pSlot = document.getElementById("previstos-slot");
-  if (!previstos.length) {
-    pSlot.innerHTML = `<p class="dim">Sin misiones programadas.</p>`;
+  const pSlot = document.getElementById("recent-flights-slot");
+  if (!vuelos.length) {
+    pSlot.innerHTML = `<p class="dim">Sin vuelos registrados.</p>`;
   } else {
     pSlot.innerHTML = `
       <div class="col" style="gap:0">
-        ${previstos.slice(0, 5).map(p => `
-          <div class="row between" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant)">
-            <div>
-              <div class="list__primary">${p.nombre_clave || p.descripcion || "Mision"}</div>
-              <div class="list__secondary">${formatDate(p.fecha_inicio)} → ${formatDate(p.fecha_fin)}</div>
+        ${vuelos.slice(0, 5).map(v => `
+          <a class="row between" href="#/vuelos/${v.id_vuelo}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);text-decoration:none;color:inherit">
+            <div style="min-width:0;flex:1">
+              <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.proposito || "Vuelo"}</div>
+              <div class="list__secondary">${formatDate(v.fecha)} · ${v.tiempo_de_vuelo || "—"}</div>
             </div>
-            <span class="chip chip--info"><span class="chip__dot"></span>PREVISTO</span>
-          </div>
+            <span class="chip chip--safe"><span class="chip__dot"></span>${(v.estado || "REALIZADO").toUpperCase()}</span>
+          </a>
         `).join("")}
       </div>
+      <a class="btn btn--secondary btn--sm mt-2" href="#/vuelos">VER TODO →</a>
     `;
   }
 

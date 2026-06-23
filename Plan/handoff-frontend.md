@@ -280,36 +280,37 @@ route("/pilotos/:id/edit", ({ params }) => requireAuth(() => renderPilotosForm(r
 
 ---
 
-### Etapa 4.2 — Vuelos CRUD con wizard (~60 min, complejidad alta)
+### Etapa 4.2 — Vuelos CRUD con wizard ✅ COMPLETA
 
-**Backend ya existe** (sección 2).
+**Backend ya existía** (sección 2). Implementación en 6 sub-chunks (4.2A–4.2F), commits `5dfca8f` … `08c1978`.
 
-**Vistas a crear**:
-1. `frontend/scripts/views/vuelos-list.js` — lista con columnas: fecha, duración, propósito, dron(es), batería(s), piloto(s), estado. Filtros: por dron, por piloto, por rango de fecha.
-2. `frontend/scripts/views/vuelo-detail.js` — ficha completa: header con propósito/clima/estado, módulo 01 DRON, módulo 02 BATERÍAS (con ciclos), módulo 03 PILOTOS, módulo 04 UBICACIÓN (coordenadas + fecha + duración)
-3. `frontend/scripts/views/vuelos-form.js` — **wizard 3 pasos**:
-   - **Paso 1 — Dron**: lista de drones disponibles (filtrar por `estado: "En Servicio"`), selección múltiple opcional
-   - **Paso 2 — Batería**: lista de baterías disponibles (ciclos < 3000?), selección múltiple opcional
-   - **Paso 3 — Piloto + datos**: selección de piloto + fecha + tiempo_de_vuelo (HH:MM:SS con regex) + coordenadas (input texto con placeholder "-34.6,-58.4") + propósito + clima (select con 7 opciones) + observaciones + estado (Realizado default)
-   - **Resumen** antes de submit mostrando qué se va a crear/modificar
+**Vistas entregadas**:
+1. `frontend/scripts/views/vuelos-list.js` — lista con search + dropdowns (dron/piloto) + rango fecha + cards con propósito/tiempo/coords/clima/asociados.
+2. `frontend/scripts/views/vuelo-detail.js` — ficha con hero, stats (4), 5 módulos (17 DRONES, 18 BATERIAS con ciclos/segbar, 19 PILOTOS, 20 UBICACION, 21 ACCIONES admin). Botón DAR DE BAJA con error-banner en vez de alert.
+3. `frontend/scripts/views/vuelos-form.js` — vista wrapper del wizard con carga de catálogos, auth-check admin, navegación a detail tras POST/PUT.
+4. `frontend/scripts/vuelos-wizard.js` (nuevo) — `createWizard({ root, isEdit, initialData, catalogs, onSubmit, onCancel })` con state, navigation, validation, buildPayload.
 
-**Endpoints a consumir**:
-- `GET /api/drones` (listado dron picker)
-- `GET /api/pilotos` (listado piloto picker)
-- `GET /api/baterias` (listado batería picker)
-- `POST /api/vuelos` (wizard submit, transaccional)
-- `PUT /api/vuelos/:id` (edición, no toca acumuladores)
-- `DELETE /api/vuelos/:id` (soft delete)
+**Infra nueva**:
+- CSS: `.stepper` (4 nodos con conectores, estados active/done con barras que se llenan) + `.picker` (cards multi-select con checkbox visual).
+- Helpers en `ui-helpers.js`: `CLIMAS_OPTIONS` (7 valores), `TIEMPO_REGEX` (HH:MM:SS), `COORDS_REGEX` (lat,lng), `parseVueloIds` (CSV → array).
+- Backend: `vuelo.model.js:getVueloById` ahora incluye `ciclos_de_carga`, `capacidad`, `voltage` en baterías.
 
-**Manejo de errores del wizard**:
-- Si la transacción falla, mostrar el error del backend tal cual (ya devuelve `error: "..."` en español)
-- Validación cliente: regex HH:MM:SS, drones/baterias/pilotos arrays no vacíos
-- Coordinadas: validar formato `lat,lng` con regex `/^-?\d+\.?\d*,-?\d+\.?\d*$/`
+**MOD prefix**: 14 (list) / 15 (detail) / 16 (wizard form).
 
-**Vista detalle debe mostrar acumuladores previos**:
-- Dron: `horas_vuelo_acum` ya viene en el GET `/drones/:id`
-- Piloto: igual
-- Batería: `ciclos_de_carga` ya viene en GET `/baterias/:id`
+**Decisiones de implementación**:
+- **POST abierto a cualquier autenticado** en backend (decisión previa); frontend muestra FAB/headerActions solo a admin para coherencia con el cambio de seguridad del bugfix de 4.2E.
+- Filtros de picker: drones "En Servicio" + ya-seleccionados (para edición); baterías `ciclos < 3000` + ya-seleccionadas.
+- Wizard tiene 4 steps reales (no 3 + resumen como se planeó originalmente — el resumen es el 4to paso navegable).
+- `setDraft()` no re-renderiza (preserva focus en inputs); navegación y errores sí re-renderizan.
+- Click en stepper node → jump al paso (con validación hacia adelante).
+
+**Cambio de diseño en el backend** (no planeado, surgió del smoke test):
+- `POST /api/vuelos` ahora requiere `verificarAdmin` (consistencia con PUT/DELETE; commit `5c7053f`). El frontend refleja esto ocultando el botón "+ ALTA" para no-admin.
+- `verificarToken` ahora devuelve **401** (no 403) en ausencia de header, alineado con RFC 7235 (commit `5c7053f`).
+
+**Suite QA**: `src/scripts/run-smoke-tests.js` con 5 TC (TC-VUL-01 a 05), 6/6 OK tras los fixes. Ejecutable con `node src/scripts/run-smoke-tests.js`.
+
+**Dashboard**: slot "PROXIMOS VUELOS" reemplazado por "VUELOS RECIENTES" con los últimos 5 vuelos reales + link a `/vuelos`.
 
 ---
 
