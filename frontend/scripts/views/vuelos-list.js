@@ -11,16 +11,21 @@ const climaChip = (clima) => {
 
 export const renderVuelosList = async (root) => {
   const user = getUser();
+  const isAdmin = user?.rol?.toLowerCase() === "admin";
 
   root.innerHTML = renderShell({
     titlePrefix: "14",
     title: "VUELOS",
     id: "MOD-14",
     user,
-    headerActions: `<a class="btn btn--primary btn--sm" href="#/vuelos/new" style="min-height:36px;padding:0 var(--space-3)">+ ALTA</a>`,
-    fab: `<a class="fab" href="#/vuelos/new" title="ALTA VUELO" aria-label="Alta de vuelo">
+    headerActions: isAdmin
+      ? `<a class="btn btn--primary btn--sm" href="#/vuelos/new" style="min-height:36px;padding:0 var(--space-3)">+ ALTA</a>`
+      : "",
+    fab: isAdmin
+      ? `<a class="fab" href="#/vuelos/new" title="ALTA VUELO" aria-label="Alta de vuelo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </a>`,
+      </a>`
+      : "",
   });
   const main = bindShell(root, user);
 
