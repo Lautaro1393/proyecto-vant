@@ -228,6 +228,7 @@ export const renderVueloDetail = async (root, id) => {
         <div class="card__body" style="display:flex;flex-direction:column;gap:var(--space-2)">
           <a class="btn btn--secondary" href="#/vuelos/${id}/edit">EDITAR VUELO</a>
           <button class="btn btn--danger" id="btn-delete">DAR DE BAJA (SOFT DELETE)</button>
+          <div id="delete-error"></div>
         </div>
       </article>
     ` : ""}
@@ -241,10 +242,21 @@ export const renderVueloDetail = async (root, id) => {
 
 const borrarVuelo = async (id) => {
   if (!confirm("DAR DE BAJA este vuelo? (soft delete, no resta acumuladores)")) return;
+  const btn = document.getElementById("btn-delete");
+  const errSlot = document.getElementById("delete-error");
+  if (errSlot) errSlot.innerHTML = "";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "BORRANDO...";
+  }
   try {
     await api.del(`/api/vuelos/${id}`);
     navigate("/vuelos");
   } catch (e) {
-    alert(`Error: ${e.message}`);
+    if (errSlot) errSlot.innerHTML = `<div class="error-banner">${e.message || "Error al borrar"}</div>`;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "DAR DE BAJA (SOFT DELETE)";
+    }
   }
 };
