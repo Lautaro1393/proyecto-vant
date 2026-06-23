@@ -46,10 +46,32 @@ export const renderDashboard = async (root) => {
       </article>
     </div>
 
+    <div class="grid-2 mt-3">
+      <article class="card card--alert">
+        <header class="card__header">
+          <span><span class="card__header-prefix">04</span> MANTENIMIENTOS</span>
+          <span class="card__header-id">MOD-03</span>
+        </header>
+        <div class="card__body" id="mant-slot">
+          <span class="spinner"></span>
+        </div>
+      </article>
+
+      <article class="card card--info">
+        <header class="card__header">
+          <span><span class="card__header-prefix">05</span> PROXIMAS MISIONES</span>
+          <span class="card__header-id">MOD-04</span>
+        </header>
+        <div class="card__body" id="prev-slot">
+          <span class="spinner"></span>
+        </div>
+      </article>
+    </div>
+
     <article class="card mt-3">
       <header class="card__header">
-        <span><span class="card__header-prefix">04</span> ESTADO DE BATERIAS</span>
-        <span class="card__header-id">MOD-03</span>
+        <span><span class="card__header-prefix">06</span> ESTADO DE BATERIAS</span>
+        <span class="card__header-id">MOD-05</span>
       </header>
       <div class="card__body card__body--flush" id="battery-slot">
         <span class="spinner" style="margin:var(--space-3)"></span>
@@ -61,9 +83,10 @@ export const renderDashboard = async (root) => {
 
   const safe = async (fn, fallback = []) => { try { return await fn(); } catch (e) { console.error(e); return fallback; } };
 
-  const [drones, baterias, previstos, vuelos] = await Promise.all([
+  const [drones, baterias, mantenimientos, previstos, vuelos] = await Promise.all([
     safe(() => api.get("/api/drones"), []),
     safe(() => api.get("/api/baterias"), []),
+    safe(() => api.get("/api/mantenimientos"), []),
     safe(() => api.get("/api/previstos"), []),
     safe(() => api.get("/api/vuelos"), []),
   ]);
@@ -172,6 +195,48 @@ export const renderDashboard = async (root) => {
           `;
         }).join("")}
       </div>
+    `;
+  }
+
+  // Mantenimientos recientes
+  const mantSlot = document.getElementById("mant-slot");
+  if (!mantenimientos.length) {
+    mantSlot.innerHTML = `<p class="dim">Sin mantenimientos registrados.</p>`;
+  } else {
+    mantSlot.innerHTML = `
+      <div class="col" style="gap:0">
+        ${mantenimientos.slice(0, 5).map(m => `
+          <a class="row between" href="#/mantenimientos/${m.id_mantenimiento}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);text-decoration:none;color:inherit">
+            <div style="min-width:0;flex:1">
+              <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.tipo || "—"}</div>
+              <div class="list__secondary">${formatDate(m.fecha)}</div>
+            </div>
+            <span class="chip ${(m.tipo || "").toLowerCase().includes("correctivo") ? "chip--alert" : (m.tipo || "").toLowerCase().includes("preventivo") ? "chip--safe" : "chip--info"}"><span class="chip__dot"></span>${(m.tipo || "—").toUpperCase()}</span>
+          </a>
+        `).join("")}
+      </div>
+      <a class="btn btn--secondary btn--sm mt-2" href="#/mantenimientos">VER TALLER →</a>
+    `;
+  }
+
+  // Proximas misiones
+  const prevSlot = document.getElementById("prev-slot");
+  if (!previstos.length) {
+    prevSlot.innerHTML = `<p class="dim">Sin misiones programadas.</p>`;
+  } else {
+    prevSlot.innerHTML = `
+      <div class="col" style="gap:0">
+        ${previstos.slice(0, 5).map(p => `
+          <a class="row between" href="#/previstos/${p.id_previstos}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);text-decoration:none;color:inherit">
+            <div style="min-width:0;flex:1">
+              <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nombre_clave || "—"}</div>
+              <div class="list__secondary">${formatDate(p.fecha_inicio)}</div>
+            </div>
+            <span class="chip ${(p.previstoscol || "").toLowerCase().includes("curso") ? "chip--info" : "chip--dim"}"><span class="chip__dot"></span>${(p.previstoscol || "—").toUpperCase()}</span>
+          </a>
+        `).join("")}
+      </div>
+      <a class="btn btn--secondary btn--sm mt-2" href="#/previstos">VER AGENDA →</a>
     `;
   }
 };

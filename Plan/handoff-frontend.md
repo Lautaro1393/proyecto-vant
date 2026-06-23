@@ -314,9 +314,60 @@ route("/pilotos/:id/edit", ({ params }) => requireAuth(() => renderPilotosForm(r
 
 ---
 
-### Etapa 4.3 (futuro) — Mantenimientos, Previstos, Modelos CRUD
+### Etapa 4.3 — Mantenimientos, Previstos, Modelos CRUD ✅ COMPLETA
 
-Mismo patrón. Mantenimientos tiene un trigger interesante: POST en mantenimiento debe cambiar el estado del dron a "En Mantenimiento" automáticamente (decisión de diseño previa). PUT puede re-vertir el estado.
+Implementación en 3 sub-chunks (4.3A–4.3C) + dashboard integration (4.3D). Commits `52e745e` … `dec541f`.
+
+### 4.3A — Mantenimientos (full CRUD)
+
+**Backend**:
+- `mantenimiento.model.js`: `getMantenimientoById` (con JOINs a dron + bateria para mostrar matricula/serie), `modificarMantenimiento` (UPDATE dinámico), `deleteMantenimiento`
+- `mantenimiento.controller.js`: `getMantenimientoById`, `actualizarMantenimiento`, `borrarMantenimiento` + `TIPOS_VALIDOS` (4 valores del ENUM) + captura explícita de `ER_NO_REFERENCED_ROW_2` (400) y `WARN_DATA_TRUNCATED` (400)
+- `mantenimiento.routes.js`: `GET /:id`, `PUT /:id`, `DELETE /:id` (admin-only escritura)
+
+**Frontend** (MOD 22/23/24):
+- `mantenimientos-list.js`: search libre + 5 filter chips (TODOS/PREVENTIVO/CORRECTIVO/FIRMWARE/CALIBRACION) + cards con tipo chip coloreado + costo formateado es-AR + horas
+- `mantenimiento-detail.js`: hero con tipo+chip, 4 stat cells (costo/horas/dron/bateria), módulo DETALLE TECNICO con grid-2, módulo ACCIONES admin (EDITAR + ELIMINAR con error-banner)
+- `mantenimientos-form.js`: form admin-only con auth check, valida dron/fecha/tipo/costo/horas, carga catálogos de drones+baterias, soporta isEdit (pre-carga), submit POST/PUT + navigate al detail
+
+**Decisiones**:
+- DELETE es hard delete (no hay `deleted_at` en la tabla)
+- DELETE NO revierte dron.estado automáticamente (admin debe hacerlo manualmente via dron detail si quiere)
+- `fk_bateria_id` es opcional en el form (backend acepta null)
+
+### 4.3B — Previstos (frontend only, backend completo)
+
+**Frontend** (MOD 25/26/27):
+- `previstos-list.js`: search libre + 5 filter chips (TODOS/PLANIFICADO/EN CURSO/FINALIZADO/POSPUESTO/CANCELADO) + cards con nombre + rango fechas + chip de estado + solicitante
+- `previsto-detail.js`: hero con nombre + rango + chip estado, 4 stat cells (fecha_inicio/fecha_fin/solicitante/estado), módulo DETALLE DE MISION con grid-2, módulo ACCIONES admin (EDITAR + CANCELAR MISION con error-banner, soft delete)
+- `previstos-form.js`: form admin-only, validaciones (nombre_clave max 150, descripcion max 450, fecha_fin > fecha_inicio), inputs `datetime-local` con conversión bidireccional (`toDateTimeLocal` para input, `toBackendDateTime` para API) + select con 5 valores del ENUM
+
+**Decisiones**:
+- Inputs datetime-local (la tabla es `datetime`, no `date`)
+- `fecha_fin > fecha_inicio` validado en cliente (sanea data)
+- Soft delete ya implementado en backend (`deleted_at` IS NULL)
+
+### 4.3C — Modelos (full CRUD)
+
+**Backend**:
+- `modelo_dron.model.js`: `updateModelo` (UPDATE dinámico), `deleteModelo`, `countDronesByModelo` (helper para check de integridad)
+- `modelo_dron.controller.js`: `actualizarModelo`, `borrarModelo` con integridad referencial via `countDronesByModelo` (devuelve 400 si hay drones en uso con el conteo)
+- `modelo_dron.routes.js`: `PUT /:id`, `DELETE /:id` (admin-only escritura)
+- Captura explícita de `ER_ROW_IS_REFERENCED_2` (400)
+
+**Frontend** (MOD 28/29) — sin detail (es un catálogo simple):
+- `modelos-list.js`: search libre + cards con modelo + fabricante + botón EDITAR (admin only)
+- `modelos-form.js`: form admin-only con validaciones (max 45 chars modelo y fabricante), soporta isEdit (pre-carga), submit POST/PUT + navigate. En modo edición: botón ELIMINAR MODELO con error-banner
+
+**Decisiones**:
+- Sin detail view (decisión de diseño: el detail trivial no aporta valor sobre el list+edit)
+- DELETE bloqueado si hay drones usando el modelo (integridad referencial)
+
+### 4.3D — Dashboard + handoff
+
+- `dashboard.js`: agregados 2 nuevos cards (grid-2): **04 MANTENIMIENTOS** + **05 PROXIMAS MISIONES** con links a `/mantenimientos` y `/previstos`
+- Reorganización de MODs: 02 FLOTA, 03 VUELOS, 04 MANTENIMIENTOS, 05 PROXIMAS MISIONES, 06 ESTADO DE BATERIAS
+- Carga en paralelo de 5 endpoints (drones, baterias, mantenimientos, previstos, vuelos)
 
 ---
 
