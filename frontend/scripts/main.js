@@ -1,5 +1,6 @@
 import { route, start, navigate } from "./router.js";
 import { isLoggedIn } from "./auth.js";
+import { getTheme, setTheme } from "./ui.js";
 import { renderLogin } from "./views/login.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderDronesList } from "./views/drones-list.js";
@@ -61,4 +62,5 @@ route("/modelos",          () => requireAuth(() => renderModelosList(document.ge
 route("/modelos/new",      () => requireAuth(() => renderModelosForm(document.getElementById("root"), { id: null })));
 route("/modelos/:id/edit", ({ params }) => requireAuth(() => renderModelosForm(document.getElementById("root"), { id: params.id })));
 
+setTheme(getTheme());
 start(isLoggedIn() ? "/dashboard" : "/login");

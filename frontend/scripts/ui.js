@@ -10,6 +10,27 @@ const NAV = [
   { hash: "/modelos",       label: "MODELOS", icon: "tag" },
 ];
 
+const THEMES = [
+  { key: "",       label: "OLIVE"  },
+  { key: "night",  label: "NIGHT"  },
+  { key: "desert", label: "DESERT" },
+];
+
+export const getTheme = () => localStorage.getItem("vant.theme") || "";
+export const setTheme = (key) => {
+  if (key) localStorage.setItem("vant.theme", key);
+  else localStorage.removeItem("vant.theme");
+  if (key) document.documentElement.dataset.theme = key;
+  else delete document.documentElement.dataset.theme;
+};
+export const cycleTheme = () => {
+  const cur = getTheme();
+  const idx = THEMES.findIndex((t) => t.key === cur);
+  const next = THEMES[(idx + 1) % THEMES.length];
+  setTheme(next.key);
+  return next;
+};
+
 const ICONS = {
   grid:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
   drone:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="5" r="3"/><circle cx="19" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="7" y1="7" x2="17" y2="17"/><line x1="17" y1="7" x2="7" y2="17"/><circle cx="12" cy="12" r="2"/></svg>',
@@ -18,6 +39,7 @@ const ICONS = {
   wrench:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   tag:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  palette:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
   logout:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
   menu:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
 };
@@ -26,7 +48,9 @@ export const icon = (name) => ICONS[name] || "";
 
 const currentNav = () => NAV.find(n => window.location.hash.startsWith(`#${n.hash}`))?.hash || "";
 
-export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActions = "", fab = "" }) => `
+export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActions = "", fab = "" }) => {
+  const currentTheme = THEMES.find((t) => t.key === getTheme()) || THEMES[0];
+  return `
   <div class="app">
     <header class="app__header">
       <div class="app__brand">
@@ -40,6 +64,7 @@ export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActi
       <div class="app__actions">
         ${headerActions}
         ${user?.rol ? `<span class="chip chip--olive" title="${user.rol}"><span class="chip__dot"></span>${user.rol.toUpperCase()}</span>` : ""}
+        <button class="btn btn--ghost btn--icon" id="btn-theme" title="Tema: ${currentTheme.label} (click para cambiar)">${icon("palette")}</button>
         <button class="btn btn--ghost btn--icon" id="btn-logout" title="Logout">${icon("logout")}</button>
       </div>
     </header>
@@ -63,6 +88,7 @@ export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActi
     ${fab}
   </div>
 `;
+};
 
 export const bindShell = (root, user) => {
   const main = root.querySelector("#main-slot");
@@ -71,6 +97,13 @@ export const bindShell = (root, user) => {
     logoutBtn.addEventListener("click", () => {
       clearAuth();
       window.location.hash = "#/login";
+    });
+  }
+  const themeBtn = root.querySelector("#btn-theme");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      const next = cycleTheme();
+      themeBtn.setAttribute("title", `Tema: ${next.label} (click para cambiar)`);
     });
   }
   return main;
