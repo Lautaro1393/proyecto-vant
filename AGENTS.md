@@ -49,6 +49,24 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 - **PAT anterior**: regenerado y revocado en https://github.com/settings/tokens (no exponer nunca uno nuevo en URLs de `git push` ni en el chat)
 - **Regla para IAs**: usar `git push origin main` a secas, NUNCA `https://x-access-token:PAT@...`
 
+### SSH Agent Setup (importante)
+
+El `ssh-agent` por defecto no carga la key `~/.ssh/Dell-LinuxMint`. Hay dos formas de resolverlo:
+
+1. **Agregar la key al agent** (recomendado, una sola vez por sesion):
+   ```bash
+   eval "$(ssh-agent -s)"
+   ssh-add ~/.ssh/Dell-LinuxMint
+   ```
+   Nota: `ssh-add` pedira el passphrase por `ssh-askpass` o por TTY interactivo.
+
+2. **Forzar la key en cada push** (workaround sin tocar el agent):
+   ```bash
+   GIT_SSH_COMMAND="ssh -i ~/.ssh/Dell-LinuxMint" git push origin main
+   ```
+
+Si el push falla con `sign_and_send_pubkey: signing failed ... agent refused operation`, es porque el agent activo tiene otra key que no es la del proyecto. Usar la opcion 1 o 2.
+
 ## Modules Status
 - **Etapa 1 (Previstos)**: Completa
 - **Etapa 2 (Vuelos)**: Completa - `src/models/vuelo.model.js`, `src/controllers/vuelo.controller.js`, `src/routes/vuelo.routes.js`

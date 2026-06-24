@@ -6,6 +6,10 @@
 
 # Config local de opencode (con MCPs y credenciales que no van al repo)
 opencode.json
+/.opencode/
+
+# Imagenes de prueba subidas via el endpoint de drones (no son assets del repo)
+uploads/imagen-*
 
 # Archivos de logs de NPM
 npm-debug.log*
