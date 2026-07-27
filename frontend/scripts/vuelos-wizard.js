@@ -1,4 +1,5 @@
 import { CLIMAS_OPTIONS, ESTADOS_VUELO, TIEMPO_REGEX, COORDS_REGEX } from "./ui-helpers.js";
+import { mountCoordsPicker } from "./coords-picker.js";
 
 const STEPS = [
   { key: "drones",   label: "DRONES" },
@@ -251,14 +252,8 @@ const renderStepDatos = ({ draft, catalogs }) => {
           </div>
 
           <div class="field">
-            <label class="field__label" for="wiz-coords">Coordenadas (lat,lng) *</label>
-            <div class="input-wrap">
-              <input class="input" id="wiz-coords" data-draft-key="coordenadas" type="text" value="${escape(draft.coordenadas)}" required placeholder="-34.6037,-58.3816" pattern="^-?\\d{1,3}\\.?\\d*,-?\\d{1,3}\\.?\\d*$" />
-              <div class="input-wrap__brackets">
-                <span class="br-tl"></span><span class="br-tr"></span>
-                <span class="br-bl"></span><span class="br-br"></span>
-              </div>
-            </div>
+            <label class="field__label">Coordenadas (lat,lng) *</label>
+            <div data-coords-host></div>
           </div>
 
           <div class="field">
@@ -467,6 +462,18 @@ const bindStepDatos = ({ root, wiz }) => {
     el.addEventListener("input", handler);
     el.addEventListener("change", handler);
   });
+
+  const coordsHost = form.querySelector("[data-coords-host]");
+  if (coordsHost) {
+    if (wiz._coordsPicker && typeof wiz._coordsPicker.destroy === "function") {
+      wiz._coordsPicker.destroy();
+    }
+    wiz._coordsPicker = mountCoordsPicker({
+      container: coordsHost,
+      initial: wiz.getDraft().coordenadas || "",
+      onChange: (val) => wiz.setDraft({ coordenadas: val }),
+    });
+  }
 };
 
 const bindStepResumen = ({ wiz }) => {
@@ -630,7 +637,13 @@ export const createWizard = ({ root, isEdit = false, initialData = {}, catalogs 
     goTo,
     reRender: () => render(),
     buildPayload,
-    destroy: () => { root.innerHTML = ""; },
+    destroy: () => {
+      if (api._coordsPicker && typeof api._coordsPicker.destroy === "function") {
+        api._coordsPicker.destroy();
+      }
+      root.innerHTML = "";
+    },
+    _coordsPicker: null,
   };
 
   render();

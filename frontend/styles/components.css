@@ -365,6 +365,41 @@
 }
 
 /* ============================================================
+   COORDS PICKER — Leaflet map + input + geolocation
+   ============================================================ */
+.coords-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.coords-picker__map {
+  width: 100%;
+  height: 240px;
+  background: var(--surface-lowest);
+  border: var(--border-1);
+  position: relative;
+  z-index: 0;
+}
+.coords-picker__hint {
+  font-size: 11px;
+  color: var(--on-surface-dim);
+  letter-spacing: 0.05em;
+}
+.coords-picker__row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+.coords-picker__row .input-wrap { flex: 1; }
+.coords-picker__row .btn { white-space: nowrap; min-height: 44px; }
+.coords-picker__error {
+  color: var(--alert);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.leaflet-container { font: var(--text-body); }
+
+/* ============================================================
    AVATAR — iniciales para pilotos
    ============================================================ */
 .avatar {
