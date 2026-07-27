@@ -68,13 +68,19 @@ export const renderModelosList = async (root) => {
     }
 
     listSlot.innerHTML = filtered.map((m, idx) => `
-      <div class="card card--info" style="display:flex;align-items:center;gap:var(--space-3)">
-        <div style="flex:1;min-width:0">
-          <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.modelo || "—"}</div>
-          <div class="list__secondary">${m.fabricante || "—"}</div>
+      <div class="card card--info">
+        <header class="card__header">
+          <span><span class="card__header-prefix">${String(idx + 1).padStart(2, "0")}</span> ${escape(m.modelo) || "—"}</span>
+          <span class="card__header-id">MOD-${m.id_modelo_dron}</span>
+        </header>
+        <div class="card__body">
+          <div class="list__primary" style="margin-bottom:var(--space-1)">${escape(m.fabricante) || "—"}</div>
+          <div class="list__secondary dim">MODELO: ${escape(m.modelo) || "—"}</div>
         </div>
         ${isAdmin ? `
-          <a class="btn btn--secondary btn--sm" href="#/modelos/${m.id_modelo_dron}/edit" style="min-height:32px;padding:0 var(--space-2);font-size:10px">EDITAR</a>
+          <div style="padding:var(--space-2) var(--space-3);border-top:1px solid var(--outline-variant);display:flex;justify-content:flex-end">
+            <a class="btn btn--secondary btn--sm" href="#/modelos/${m.id_modelo_dron}/edit" style="min-height:32px;padding:0 var(--space-3);font-size:10px">EDITAR</a>
+          </div>
         ` : ""}
       </div>
     `).join("");
@@ -83,3 +89,5 @@ export const renderModelosList = async (root) => {
   q.addEventListener("input", apply);
   apply();
 };
+
+const escape = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));

@@ -1,4 +1,4 @@
-import { CLIMAS_OPTIONS, TIEMPO_REGEX, COORDS_REGEX } from "./ui-helpers.js";
+import { CLIMAS_OPTIONS, ESTADOS_VUELO, TIEMPO_REGEX, COORDS_REGEX } from "./ui-helpers.js";
 
 const STEPS = [
   { key: "drones",   label: "DRONES" },
@@ -12,7 +12,8 @@ const CICLOS_MAX = 3000;
 const defaultDraft = () => ({
   drones: [],
   baterias: [],
-  pilotos: [],
+  piloto_main: null,
+  piloto_copiloto: null,
   fecha: new Date().toISOString().slice(0, 10),
   tiempo_de_vuelo: "00:25:00",
   coordenadas: "",
@@ -23,19 +24,24 @@ const defaultDraft = () => ({
   previsto_id: null,
 });
 
-const sanitize = (data) => ({
-  drones: (data.drones || []).map(Number).filter(Boolean),
-  baterias: (data.baterias || []).map(Number).filter(Boolean),
-  pilotos: (data.pilotos || []).map(Number).filter(Boolean),
-  fecha: data.fecha || "",
-  tiempo_de_vuelo: data.tiempo_de_vuelo || "",
-  coordenadas: data.coordenadas || "",
-  proposito: (data.proposito || "").trim(),
-  clima: data.clima || "Despejado",
-  observaciones: (data.observaciones || "").trim(),
-  estado: data.estado || "Realizado",
-  previsto_id: data.previsto_id ? Number(data.previsto_id) : null,
-});
+const sanitize = (data) => {
+  const pilotoMain = data.piloto_main ?? (Array.isArray(data.pilotos) ? data.pilotos[0] ?? null : null);
+  const pilotoCopi = data.piloto_copiloto ?? (Array.isArray(data.pilotos) ? data.pilotos[1] ?? null : null);
+  return {
+    drones: (data.drones || []).map(Number).filter(Boolean),
+    baterias: (data.baterias || []).map(Number).filter(Boolean),
+    piloto_main: pilotoMain ? Number(pilotoMain) : null,
+    piloto_copiloto: pilotoCopi ? Number(pilotoCopi) : null,
+    fecha: data.fecha || "",
+    tiempo_de_vuelo: data.tiempo_de_vuelo || "",
+    coordenadas: data.coordenadas || "",
+    proposito: (data.proposito || "").trim(),
+    clima: data.clima || "Despejado",
+    observaciones: (data.observaciones || "").trim(),
+    estado: data.estado || "Realizado",
+    previsto_id: data.previsto_id ? Number(data.previsto_id) : null,
+  };
+};
 
 const escape = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
@@ -106,7 +112,7 @@ const renderStepDrones = ({ draft, catalogs }) => {
       return renderPickerItem({
         id: d.id_dron,
         primary: d.matricula || `Dron #${d.id_dron}`,
-        secondary: `${d.nombre_modelo || "—"} · SN ${d.numero_de_serie || "—"} · ${d.horas_vuelo_acum != null ? d.horas_vuelo_acum + "h" : "?"} acum`,
+        secondary: `${d.nombre_modelo || "—"} · SN ${d.numero_de_serie || "—"} · ${d.horas_vuelo_acum != null ? d.horas_vuelo_acum + " min" : "?"} acum`,
         meta: enServicio ? "EN SERVICIO" : (d.estado || "—"),
         selected: sel,
         disabled: !enServicio && !sel,
@@ -186,14 +192,33 @@ const renderStepDatos = ({ draft, catalogs }) => {
       <div class="card__body">
         <form id="wiz-datos-form" autocomplete="off" novalidate>
           <div class="field">
-            <label class="field__label" for="wiz-piloto">Piloto *</label>
+            <label class="field__label" for="wiz-piloto-main">Piloto *</label>
             <div class="input-wrap">
-              <select class="select" id="wiz-piloto" data-draft-key="pilotos" data-draft-mode="single">
+              <select class="select" id="wiz-piloto-main" data-draft-key="piloto_main" data-draft-mode="single">
                 <option value="">-- SELECCIONAR --</option>
                 ${pilotos.map((p) => {
-                  const sel = draft.pilotos.length === 1 && draft.pilotos[0] === Number(p.id_pilotos);
+                  const sel = draft.piloto_main === Number(p.id_pilotos);
                   return `<option value="${p.id_pilotos}" ${sel ? "selected" : ""}>${escape((p.nombre || "") + " " + (p.apellido || ""))} · DNI ${p.dni || "—"}</option>`;
                 }).join("")}
+              </select>
+              <div class="input-wrap__brackets">
+                <span class="br-tl"></span><span class="br-tr"></span>
+                <span class="br-bl"></span><span class="br-br"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="wiz-piloto-copiloto">Copiloto (opcional)</label>
+            <div class="input-wrap">
+              <select class="select" id="wiz-piloto-copiloto" data-draft-key="piloto_copiloto" data-draft-mode="single">
+                <option value="">-- SIN COPILOTO --</option>
+                ${pilotos
+                  .filter((p) => Number(p.id_pilotos) !== Number(draft.piloto_main))
+                  .map((p) => {
+                    const sel = draft.piloto_copiloto === Number(p.id_pilotos);
+                    return `<option value="${p.id_pilotos}" ${sel ? "selected" : ""}>${escape((p.nombre || "") + " " + (p.apellido || ""))} · DNI ${p.dni || "—"}</option>`;
+                  }).join("")}
               </select>
               <div class="input-wrap__brackets">
                 <span class="br-tl"></span><span class="br-tr"></span>
@@ -263,7 +288,9 @@ const renderStepDatos = ({ draft, catalogs }) => {
             <div class="field">
               <label class="field__label" for="wiz-estado">Estado</label>
               <div class="input-wrap">
-                <input class="input" id="wiz-estado" data-draft-key="estado" type="text" value="${escape(draft.estado)}" placeholder="Realizado" />
+                <select class="select" id="wiz-estado" data-draft-key="estado">
+                  ${ESTADOS_VUELO.map((e) => `<option value="${e.value}" ${draft.estado === e.value ? "selected" : ""}>${e.label}</option>`).join("")}
+                </select>
                 <div class="input-wrap__brackets">
                   <span class="br-tl"></span><span class="br-tr"></span>
                   <span class="br-bl"></span><span class="br-br"></span>
@@ -307,10 +334,8 @@ const renderStepResumen = ({ draft, catalogs }) => {
 
   const dronList = draft.drones.map((id) => dronById.get(id) || { matricula: `#${id}`, horas_vuelo_acum: null });
   const batList  = draft.baterias.map((id) => batById.get(id) || { numero_de_serie: `#${id}`, ciclos_de_carga: null });
-  const pilList  = draft.pilotos.map((id) => {
-    const p = pilotoById.get(id);
-    return p ? { nombre: ((p.nombre || "") + " " + (p.apellido || "")).trim() || `#${id}` } : { nombre: `#${id}` };
-  });
+  const pilMain  = draft.piloto_main ? (pilotoById.get(Number(draft.piloto_main)) || { nombre: `#${draft.piloto_main}` }) : null;
+  const pilCopi  = draft.piloto_copiloto ? (pilotoById.get(Number(draft.piloto_copiloto)) || { nombre: `#${draft.piloto_copiloto}` }) : null;
   const previsto = draft.previsto_id ? prevById.get(draft.previsto_id) : null;
 
   const sectionStyle = "padding:var(--space-1) 0;border-bottom:1px solid var(--outline-variant);display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)";
@@ -333,7 +358,7 @@ const renderStepResumen = ({ draft, catalogs }) => {
           ? `<ul style="list-style:none;padding:0;margin:0 0 var(--space-3)">
               ${dronList.map((d) => `<li style="${sectionStyle}">
                 <span>${escape(d.matricula || "—")}</span>
-                <span class="dim text-sm">${d.horas_vuelo_acum != null ? d.horas_vuelo_acum + "h acum" : ""}</span>
+                <span class="dim text-sm">${d.horas_vuelo_acum != null ? d.horas_vuelo_acum + " min acum" : ""}</span>
               </li>`).join("")}
             </ul>`
           : `<p class="dim">— sin drones —</p>`}
@@ -352,14 +377,21 @@ const renderStepResumen = ({ draft, catalogs }) => {
           : `<p class="dim">— sin baterias —</p>`}
 
         <div class="row between mb-2">
-          <h3 class="label-caps">PILOTOS (${pilList.length})</h3>
+          <h3 class="label-caps">PILOTOS</h3>
           ${editBtn(2)}
         </div>
-        ${pilList.length
-          ? `<ul style="list-style:none;padding:0;margin:0 0 var(--space-3)">
-              ${pilList.map((p) => `<li style="${sectionStyle}"><span>${escape(p.nombre)}</span></li>`).join("")}
-            </ul>`
-          : `<p class="dim">— sin pilotos —</p>`}
+        <ul style="list-style:none;padding:0;margin:0 0 var(--space-3)">
+          ${pilMain
+            ? `<li style="${sectionStyle}">
+                <span><span class="chip chip--info" style="margin-right:var(--space-2)"><span class="chip__dot"></span>PILOTO</span>${escape(((pilMain.nombre || "") + " " + (pilMain.apellido || "")).trim() || "—")}</span>
+              </li>`
+            : `<li style="${sectionStyle}"><span class="dim">— sin piloto —</span></li>`}
+          ${pilCopi
+            ? `<li style="${sectionStyle}">
+                <span><span class="chip chip--olive" style="margin-right:var(--space-2)"><span class="chip__dot"></span>COPILOTO</span>${escape(((pilCopi.nombre || "") + " " + (pilCopi.apellido || "")).trim() || "—")}</span>
+              </li>`
+            : `<li style="${sectionStyle}"><span class="dim">— sin copiloto —</span></li>`}
+        </ul>
 
         <div class="row between mb-2">
           <h3 class="label-caps">DATOS</h3>
@@ -414,13 +446,23 @@ const bindStepDatos = ({ root, wiz }) => {
     const handler = () => {
       let val;
       if (mode === "single") {
-        val = el.value ? [Number(el.value)] : [];
+        val = el.value ? Number(el.value) : null;
       } else if (key === "previsto_id") {
         val = el.value ? Number(el.value) : null;
       } else {
         val = el.value;
       }
-      wiz.setDraft({ [key]: val });
+      const patch = { [key]: val };
+      if (key === "piloto_main") {
+        const current = wiz.getDraft();
+        if (current.piloto_copiloto && Number(current.piloto_copiloto) === val) {
+          patch.piloto_copiloto = null;
+        }
+      }
+      wiz.setDraft(patch);
+      if (key === "piloto_main") {
+        wiz.reRender();
+      }
     };
     el.addEventListener("input", handler);
     el.addEventListener("change", handler);
@@ -447,7 +489,10 @@ const validateStep = (n, draft) => {
   } else if (n === 1) {
     if (!draft.baterias.length) e.push("Selecciona al menos una bateria");
   } else if (n === 2) {
-    if (!draft.pilotos.length) e.push("Selecciona un piloto");
+    if (!draft.piloto_main) e.push("Selecciona un piloto");
+    if (draft.piloto_main && draft.piloto_copiloto && Number(draft.piloto_main) === Number(draft.piloto_copiloto)) {
+      e.push("El copiloto no puede ser el mismo que el piloto");
+    }
     if (!draft.fecha) e.push("Fecha requerida");
     if (!draft.tiempo_de_vuelo) e.push("Tiempo de vuelo requerido");
     else if (!TIEMPO_REGEX.test(draft.tiempo_de_vuelo)) e.push("Tiempo invalido (formato HH:MM:SS)");
@@ -474,19 +519,22 @@ export const createWizard = ({ root, isEdit = false, initialData = {}, catalogs 
     previstos: Array.isArray(catalogs.previstos) ? catalogs.previstos : [],
   };
 
-  const buildPayload = () => ({
-    fecha: draft.fecha,
-    coordenadas: draft.coordenadas,
-    tiempo_de_vuelo: draft.tiempo_de_vuelo,
-    proposito: draft.proposito,
-    clima: draft.clima,
-    observaciones: draft.observaciones || null,
-    drones: draft.drones,
-    baterias: draft.baterias,
-    pilotos: draft.pilotos,
-    estado: draft.estado,
-    previsto_id: draft.previsto_id,
-  });
+  const buildPayload = () => {
+    const pilotos = [draft.piloto_main, draft.piloto_copiloto].filter(Boolean);
+    return {
+      fecha: draft.fecha,
+      coordenadas: draft.coordenadas,
+      tiempo_de_vuelo: draft.tiempo_de_vuelo,
+      proposito: draft.proposito,
+      clima: draft.clima,
+      observaciones: draft.observaciones || null,
+      drones: draft.drones,
+      baterias: draft.baterias,
+      pilotos,
+      estado: draft.estado,
+      previsto_id: draft.previsto_id,
+    };
+  };
 
   const render = () => {
     const stepDef = STEPS[step];
@@ -570,7 +618,12 @@ export const createWizard = ({ root, isEdit = false, initialData = {}, catalogs 
   };
 
   const api = {
-    getDraft: () => ({ ...draft, drones: [...draft.drones], baterias: [...draft.baterias], pilotos: [...draft.pilotos] }),
+    getDraft: () => ({
+      ...draft,
+      drones: [...draft.drones],
+      baterias: [...draft.baterias],
+      pilotos: [draft.piloto_main, draft.piloto_copiloto].filter(Boolean),
+    }),
     getStep: () => step,
     getStepCount: () => STEPS.length,
     setDraft: (patch) => { draft = sanitize({ ...draft, ...patch }); },

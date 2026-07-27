@@ -26,7 +26,7 @@ export const getVueloById = async (req, res) => {
 };
 
 export const crearVuelo = async (req, res) => {
-    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id } = req.body;
+    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id, estado } = req.body;
 
     if (!fecha || !coordenadas || !tiempo_de_vuelo || !proposito || !clima) {
         return res.status(400).json({
@@ -45,6 +45,11 @@ export const crearVuelo = async (req, res) => {
     if (!model.CLIMAS_VALIDOS.includes(clima)) {
         return res.status(400).json({
             error: `Clima invalido. Valores permitidos: ${model.CLIMAS_VALIDOS.join(', ')}`
+        });
+    }
+    if (estado && !model.ESTADOS_VUELO_VALIDOS.includes(estado)) {
+        return res.status(400).json({
+            error: `Estado invalido. Valores permitidos: ${model.ESTADOS_VUELO_VALIDOS.join(', ')}`
         });
     }
     if (!model.TIEMPO_REGEX.test(tiempo_de_vuelo)) {
@@ -102,7 +107,7 @@ export const crearVuelo = async (req, res) => {
 
 export const actualizarVuelo = async (req, res) => {
     const { id } = req.params;
-    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id } = req.body;
+    const { fecha, coordenadas, tiempo_de_vuelo, proposito, clima, drones, baterias, pilotos, previsto_id, estado } = req.body;
 
     if (!fecha || !coordenadas || !tiempo_de_vuelo || !proposito || !clima) {
         return res.status(400).json({ error: 'Faltan datos obligatorios del vuelo' });
@@ -114,6 +119,11 @@ export const actualizarVuelo = async (req, res) => {
     }
     if (!model.CLIMAS_VALIDOS.includes(clima)) {
         return res.status(400).json({ error: 'Clima invalido' });
+    }
+    if (estado && !model.ESTADOS_VUELO_VALIDOS.includes(estado)) {
+        return res.status(400).json({
+            error: `Estado invalido. Valores permitidos: ${model.ESTADOS_VUELO_VALIDOS.join(', ')}`
+        });
     }
     if (!model.TIEMPO_REGEX.test(tiempo_de_vuelo)) {
         return res.status(400).json({

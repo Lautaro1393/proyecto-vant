@@ -101,7 +101,7 @@ export const renderDronesList = async (root) => {
           </div>
           <div class="row between" style="border-top:1px solid var(--outline-variant);padding-top:var(--space-2)">
             <div class="telemetry">
-              <span class="telemetry__value">${d.horas_vuelo_acum || 0}<span class="telemetry__unit"> h</span></span>
+              <span class="telemetry__value">${d.horas_vuelo_acum || 0}<span class="telemetry__unit"> min</span></span>
               <span class="telemetry__label">HORAS ACUM</span>
             </div>
             <div class="telemetry" style="align-items:flex-end">

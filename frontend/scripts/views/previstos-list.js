@@ -13,10 +13,11 @@ const ESTADOS = [
 
 const estadoChip = (e) => {
   const v = (e || "").toLowerCase();
-  if (v.includes("curso"))     return "chip--info";
-  if (v.includes("finalizado")) return "chip--safe";
-  if (v.includes("pospuesto")) return "chip--caution";
-  if (v.includes("cancelado")) return "chip--alert";
+  if (v.includes("planificado")) return "chip--info";
+  if (v.includes("curso"))       return "chip--olive";
+  if (v.includes("finalizado"))  return "chip--safe";
+  if (v.includes("pospuesto"))   return "chip--caution";
+  if (v.includes("cancelado"))   return "chip--alert";
   return "chip--dim";
 };
 

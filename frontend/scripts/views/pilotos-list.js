@@ -102,10 +102,14 @@ export const renderPilotosList = async (root) => {
               </div>
               ${chipForRol(p.rol)}
             </div>
-            <div class="row between" style="border-top:1px solid var(--outline-variant);padding-top:var(--space-2)">
+            <div class="row between wrap" style="border-top:1px solid var(--outline-variant);padding-top:var(--space-2)">
               <div class="telemetry">
-                <span class="telemetry__value">${p.horas_vuelo_acum || 0}<span class="telemetry__unit"> h</span></span>
-                <span class="telemetry__label">HORAS</span>
+                <span class="telemetry__value">${p.horas_vuelo_acum || 0}<span class="telemetry__unit"> min</span></span>
+                <span class="telemetry__label">MIN ACUM</span>
+              </div>
+              <div class="telemetry" style="align-items:center">
+                <span class="telemetry__value">${p.vuelos_count || 0}</span>
+                <span class="telemetry__label">VUELOS</span>
               </div>
               <div class="telemetry" style="align-items:flex-end">
                 ${chipForCMA(p.vencimiento_cma)}

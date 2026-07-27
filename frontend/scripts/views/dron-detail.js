@@ -43,7 +43,15 @@ export const renderDronDetail = async (root, id) => {
   }
 
   const imgSrc = dron.imagen ? `/uploads/${dron.imagen}` : null;
-  const vuelosDelDron = vuelos.filter(v => Number(v.dron_id) === Number(id)).slice(0, 5);
+  const vuelosDelDron = vuelos
+    .filter((v) => {
+      const ids = String(v.drones_ids || "")
+        .split(",")
+        .map((s) => Number(s.trim()))
+        .filter(Boolean);
+      return ids.includes(Number(id));
+    })
+    .slice(0, 5);
   const mantDelDron   = mant.filter(m => Number(m.dron_id) === Number(id)).slice(0, 5);
 
   main.querySelector("#hero").innerHTML = `
@@ -82,8 +90,8 @@ export const renderDronDetail = async (root, id) => {
     <div class="stats mt-3">
       <div class="stats__cell">
         <div>
-          <div class="stats__value">${dron.horas_vuelo_acum || 0}<span style="font-size:12px;color:var(--on-surface-dim);margin-left:2px">h</span></div>
-          <div class="stats__label">HORAS ACUM</div>
+          <div class="stats__value">${dron.horas_vuelo_acum || 0}<span style="font-size:12px;color:var(--on-surface-dim);margin-left:2px">min</span></div>
+          <div class="stats__label">MIN ACUM</div>
         </div>
         <div class="stats__trend">vuelos</div>
       </div>

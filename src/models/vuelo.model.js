@@ -2,6 +2,7 @@ import { pool } from '../config/database.js';
 import { formatFecha } from '../helpers/dateHelper.js';
 
 const CLIMAS_VALIDOS = ['Despejado','Parcialmente Nublado','Nublado','Lluvia Ligera','Lluvia Fuerte','Viento Fuerte','Niebla'];
+const ESTADOS_VUELO_VALIDOS = ['Realizado', 'Cancelado', 'Suspendido'];
 
 export const TIEMPO_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
@@ -170,7 +171,7 @@ export const deleteVuelo = async (id) => {
     return result;
 };
 
-export { CLIMAS_VALIDOS };
+export { CLIMAS_VALIDOS, ESTADOS_VUELO_VALIDOS };
 
 export const validarFKsVuelo = async (drones, baterias, pilotos, previsto_id) => {
     const placeholders = (arr) => arr.map(() => '?').join(',');

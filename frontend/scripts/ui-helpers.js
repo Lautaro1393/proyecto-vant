@@ -101,6 +101,17 @@ export const CLIMAS_OPTIONS = [
   { value: "Niebla",               label: "NIEBLA" },
 ];
 
+export const ESTADOS_VUELO = [
+  { value: "Realizado",  label: "REALIZADO" },
+  { value: "Cancelado",  label: "CANCELADO" },
+  { value: "Suspendido", label: "SUSPENDIDO" },
+];
+
+export const ESTADOS_VUELO_OPTIONS = [
+  { value: "",  label: "-- SIN ESPECIFICAR --" },
+  ...ESTADOS_VUELO,
+];
+
 export const TIEMPO_REGEX = /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 export const COORDS_REGEX = /^-?\d{1,3}\.?\d*,-?\d{1,3}\.?\d*$/;
 

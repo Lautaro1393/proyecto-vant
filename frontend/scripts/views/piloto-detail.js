@@ -76,8 +76,8 @@ export const renderPilotoDetail = async (root, id) => {
     <div class="stats mt-3">
       <div class="stats__cell">
         <div>
-          <div class="stats__value">${piloto.horas_vuelo_acum || 0}<span style="font-size:12px;color:var(--on-surface-dim);margin-left:2px">h</span></div>
-          <div class="stats__label">HORAS ACUM</div>
+          <div class="stats__value">${piloto.horas_vuelo_acum || 0}<span style="font-size:12px;color:var(--on-surface-dim);margin-left:2px">min</span></div>
+          <div class="stats__label">MIN ACUM</div>
         </div>
         <div class="stats__trend">vuelos</div>
       </div>

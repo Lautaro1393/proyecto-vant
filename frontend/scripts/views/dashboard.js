@@ -138,7 +138,7 @@ export const renderDashboard = async (root) => {
           <a class="row between" href="#/drones/${d.id_dron}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant)">
             <div>
               <div class="list__primary">${d.matricula || "—"}</div>
-              <div class="list__secondary">${d.nombre_modelo || ""} · ${d.numero_de_serie || ""} · ${d.horas_vuelo_acum || 0}h</div>
+              <div class="list__secondary">${d.nombre_modelo || ""} · ${d.numero_de_serie || ""} · ${d.horas_vuelo_acum || 0} min</div>
             </div>
             ${chipForEstado(d.estado)}
           </a>

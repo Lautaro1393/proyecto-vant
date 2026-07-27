@@ -1,14 +1,26 @@
 import {pool} from '../config/database.js'
 import { formatFecha } from '../helpers/dateHelper.js';
 
-const PILOTO_SAFE_COLUMNS =
+const PILOTO_SAFE_COLUMNS_BASE =
   'id_pilotos, nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, horas_vuelo_acum, deleted_at';
+
+const PILOTO_SELECT = `
+  SELECT p.id_pilotos, p.nombre, p.apellido, p.dni, p.certificacion,
+         p.vencimiento_cma, p.email, p.contacto, p.rol,
+         p.horas_vuelo_acum, p.deleted_at,
+         (SELECT COUNT(DISTINCT vp.vuelo_id)
+            FROM vuelo_pilotos vp
+            JOIN vuelo v ON v.id_vuelo = vp.vuelo_id
+            WHERE vp.piloto_id = p.id_pilotos AND v.deleted_at IS NULL
+         ) AS vuelos_count
+  FROM piloto p
+`;
 
 //get all
 
 export const getAllPilotos= async() =>{
     const [rows] = await pool.query(
-        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE deleted_at IS NULL`
+        `${PILOTO_SELECT} WHERE p.deleted_at IS NULL`
     );
     return rows
 }
@@ -16,7 +28,7 @@ export const getAllPilotos= async() =>{
 // GET BY ID: Buscar uno solo por su ID
 export const getPilotoByID = async (id) => {
     const [rows] = await pool.query(
-        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE id_pilotos = ? AND deleted_at IS NULL`,
+        `${PILOTO_SELECT} WHERE p.id_pilotos = ? AND p.deleted_at IS NULL`,
         [id]
     );
     return rows[0];
@@ -25,7 +37,7 @@ export const getPilotoByID = async (id) => {
 // SEARCH: Buscar por nombre (Mejorado con SQL)
 export const searchPiloto = async (termino) => {
     const [rows] = await pool.query(
-        `SELECT ${PILOTO_SAFE_COLUMNS} FROM piloto WHERE nombre LIKE ? AND deleted_at IS NULL`,
+        `${PILOTO_SELECT} WHERE p.nombre LIKE ? AND p.deleted_at IS NULL`,
         [`%${termino}%`]
     );
     return rows;
