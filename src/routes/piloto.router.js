@@ -1,16 +1,17 @@
 import { Router } from "express"; // Desestructuro express para traer solo "ROUTER"
 import { verificarToken, verificarAdmin } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router(); // instancio
 
-import {  getAllPilotos, getPilotoByID, searchPiloto, crearPiloto ,borrarPiloto, modificarPiloto} from "../controllers/piloto.controllers.js";
+import {  getAllPilotos, getPilotoByID, searchPiloto, crearPiloto ,borrarPiloto, modificarPiloto, handleMulterError} from "../controllers/piloto.controllers.js";
 // import { getAllPilotos } from "../services/pilotos.service.js";
 
 
 
 //////////  GET de Tabla Pilotos ////////
 
-//Get de toda la tabla 
+//Get de toda la tabla
 
 router.get('/pilotos',verificarToken, getAllPilotos);
 
@@ -26,11 +27,23 @@ router.get('/pilotos/:id',verificarToken, getPilotoByID);
 ////////// metodo POST ///////////
 
 
-router.post('/pilotos',verificarToken,verificarAdmin, crearPiloto);
+router.post('/pilotos',
+    verificarToken,
+    verificarAdmin,
+    upload.single('imagen'),
+    handleMulterError,
+    crearPiloto
+);
 
 
 ///// metodo put ////
-router.put('/pilotos/:id', verificarToken,verificarAdmin,modificarPiloto);
+router.put('/pilotos/:id',
+    verificarToken,
+    verificarAdmin,
+    upload.single('imagen'),
+    handleMulterError,
+    modificarPiloto
+);
 
 
 // metodo delete

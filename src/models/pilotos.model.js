@@ -45,10 +45,10 @@ export const searchPiloto = async (termino) => {
 
 // CREATE: Crear Piloto
 export const crearPiloto = async (data)=> {
-    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = data;
+    const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol, imagen } = data;
     const [result] = await pool.query(
-        'INSERT INTO piloto (nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, password, contacto, rol]
+        'INSERT INTO piloto (nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol, imagen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [nombre, apellido, dni, certificacion, formatFecha(vencimiento_cma), email, password, contacto, rol, imagen || null]
     );
     return {id_pilotos: result.insertId, ...data}
 }

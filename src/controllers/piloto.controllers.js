@@ -1,5 +1,6 @@
 import * as model from '../models/pilotos.model.js'
 import bcrypt from 'bcrypt'
+import multer from "multer";
 
 
 
@@ -60,6 +61,7 @@ export const getPilotoByID = async (req, res) => {
 
 export const crearPiloto = async (req, res) => {
     const {nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = req.body;
+    const imagen = req.file ? req.file.filename : null;
     if (!email || !password || !nombre || !rol){
         return res.status(400).json({error: 'Faltan campos obligatorios (email, password, nombre y rol)'})
     }
@@ -79,10 +81,10 @@ export const crearPiloto = async (req, res) => {
         const passwordHash = await bcrypt.hash(password, salt);
         const nuevoPilotoData = {
             nombre, apellido, dni: dniNum, certificacion, vencimiento_cma, email, password: passwordHash,
-            contacto: contactoNum, rol
+            contacto: contactoNum, rol, imagen
         };
         const resultado = await model.crearPiloto(nuevoPilotoData);
-        console.log(`[POST] Piloto creado ID: ${resultado.id_pilotos}`);
+        console.log(`[POST] Piloto creado ID: ${resultado.id_pilotos}${imagen ? ` | Imagen: ${imagen}` : ''}`);
         const pilotoSinPass = { ...resultado };
         delete pilotoSinPass.password;
         res.status(201).json(pilotoSinPass);
@@ -94,6 +96,21 @@ export const crearPiloto = async (req, res) => {
         res.status(500).json({error:'Error al crear el piloto'});
     }
 }
+
+// Multer error handler (mismo patron que dron.controller)
+export const handleMulterError = (err, req, res, next) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ error: 'La imagen supera el limite de 5MB' });
+        }
+        return res.status(400).json({ error: `Error de upload: ${err.message}` });
+    }
+    if (err.message && /imagen/i.test(err.message)) {
+        return res.status(400).json({ error: 'La imagen debe ser JPG, PNG o GIF' });
+    }
+    return next(err);
+};
 
 ///////////////// BORRAR PILOTO (DELETE) /////////////
 export const borrarPiloto = async (req, res)=>{
@@ -119,6 +136,7 @@ export const borrarPiloto = async (req, res)=>{
 export const modificarPiloto = async (req,res) => {
     const {id} = req.params;
     const { nombre, apellido, dni, certificacion, vencimiento_cma, email, password, contacto, rol } = req.body;
+    const imagen = req.file ? req.file.filename : undefined;
 
     const data = { nombre, apellido, certificacion, vencimiento_cma, email, rol };
     if (dni !== undefined) {
@@ -138,6 +156,9 @@ export const modificarPiloto = async (req,res) => {
         }
         data.contacto = contactoNum;
     }
+    if (imagen !== undefined) {
+        data.imagen = imagen;
+    }
     if (password !== undefined && password !== null && password !== "") {
         if (password.length < 6) {
             return res.status(400).json({ error: 'Password minimo 6 caracteres' });
@@ -155,7 +176,8 @@ export const modificarPiloto = async (req,res) => {
         const bodySinPass = { ...req.body };
         delete bodySinPass.password;
         const pilotoActualizado = {id_pilotos: idNum, ...bodySinPass};
-        console.log(`[PUT] Piloto con ID ${id} actualizado`);
+        if (imagen) pilotoActualizado.imagen = imagen;
+        console.log(`[PUT] Piloto con ID ${id} actualizado${imagen ? ` | imagen: ${imagen}` : ''}`);
         res.json({message: "Piloto actualizado correctamente", piloto:pilotoActualizado});
     } catch(error){
         console.error(error);

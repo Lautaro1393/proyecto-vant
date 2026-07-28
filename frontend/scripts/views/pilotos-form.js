@@ -6,6 +6,9 @@ import { ROL_OPTIONS, formatDateInput } from "../ui-helpers.js";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const dniRegex = /^\d{6,10}$/;
 
+const MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+
 const validate = (f, isEdit) => {
   const errs = [];
   if (!f.nombre?.trim())  errs.push("Nombre requerido");
@@ -155,6 +158,24 @@ export const renderPilotosForm = async (root, opts = {}) => {
         </div>
       </div>
 
+      <div class="field">
+        <label class="field__label">Foto (opcional${isEdit ? ", reemplazar la actual" : ""}, max 5MB)</label>
+        <div class="dropzone" id="dropzone" tabindex="0">
+          <input type="file" id="imagen" name="imagen" accept="image/jpeg,image/png,image/gif" hidden />
+          <div class="dropzone__inner" id="dz-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="label-caps mt-2">${isEdit ? "REEMPLAZAR FOTO" : "ARRASTRAR O TOCAR"}</p>
+            <p class="dim text-sm">JPEG / PNG / GIF</p>
+          </div>
+          <img class="dropzone__preview" id="dz-preview" alt="preview" />
+        </div>
+        <p class="field__hint" id="dz-hint"></p>
+      </div>
+
       <div class="row" style="gap:var(--space-2);margin-top:var(--space-3)">
         <a class="btn btn--secondary btn--block" href="${isEdit ? `#/pilotos/${opts.id}` : "#/pilotos"}">CANCELAR</a>
         <button type="submit" class="btn btn--primary btn--block btn--chamfer" id="btn-submit">${isEdit ? "GUARDAR CAMBIOS" : "REGISTRAR PILOTO"}</button>
@@ -182,6 +203,64 @@ export const renderPilotosForm = async (root, opts = {}) => {
   const msg = main.querySelector("#msg");
   const btn = main.querySelector("#btn-submit");
 
+  // Drag & drop + preview
+  {
+    const dz = main.querySelector("#dropzone");
+    const input = main.querySelector("#imagen");
+    const inner = main.querySelector("#dz-inner");
+    const preview = main.querySelector("#dz-preview");
+    const hint = main.querySelector("#dz-hint");
+
+    if (isEdit && pilotoExistente?.imagen) {
+      preview.src = `/uploads/${pilotoExistente.imagen}`;
+      preview.style.display = "block";
+      inner.style.display = "none";
+      hint.innerHTML = `<span class="dim">Actual: ${pilotoExistente.imagen}</span>`;
+    }
+
+    const setFile = (file) => {
+      hint.innerHTML = "";
+      if (!file) { inner.style.display = "grid"; preview.style.display = "none"; return; }
+      if (!ALLOWED.includes(file.type)) {
+        hint.innerHTML = `<span class="accent-alert">Formato no permitido (${file.type || "?"})</span>`;
+        input.value = "";
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        hint.innerHTML = `<span class="accent-alert">Supera 5MB (${(file.size / 1024 / 1024).toFixed(1)}MB)</span>`;
+        input.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        inner.style.display = "none";
+        hint.innerHTML = `<span class="accent-safe">${file.name} · ${(file.size / 1024).toFixed(0)}KB</span>`;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    input.addEventListener("change", (e) => setFile(e.target.files[0]));
+    dz.addEventListener("click", () => input.click());
+    dz.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    ["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, (e) => {
+      e.preventDefault(); dz.classList.add("dropzone--active");
+    }));
+    ["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, (e) => {
+      e.preventDefault(); dz.classList.remove("dropzone--active");
+    }));
+    dz.addEventListener("drop", (e) => {
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        setFile(file);
+      }
+    });
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     msg.innerHTML = "";
@@ -196,15 +275,22 @@ export const renderPilotosForm = async (root, opts = {}) => {
     try {
       const url    = isEdit ? `/api/pilotos/${opts.id}` : `/api/pilotos`;
       const method = isEdit ? "PUT" : "POST";
+      const token  = localStorage.getItem("vant.jwt");
 
-      const payload = { ...data };
-      if (isEdit && !payload.password) delete payload.password;
-      delete payload.password_confirm;
+      const fd = new FormData();
+      const fileInput = main.querySelector("#imagen");
+      const file = fileInput?.files[0];
+      Object.entries(data).forEach(([k, v]) => {
+        if (k === "imagen") return;
+        if (k === "password" && isEdit && !v) return;
+        if (v !== "" && v != null) fd.append(k, v);
+      });
+      if (file && file.size > 0) fd.append("imagen", file);
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("vant.jwt")}` },
-        body: JSON.stringify(payload),
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
       });
       const ct = res.headers.get("content-type") || "";
       const body = ct.includes("application/json") ? await res.json() : await res.text();
