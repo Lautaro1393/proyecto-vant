@@ -2,6 +2,7 @@ import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
 import { formatDate } from "../ui-helpers.js";
+import { skeletonDetail } from "../skeletons.js";
 
 const confirm = (msg) => window.confirm(msg);
 
@@ -30,11 +31,7 @@ export const renderPrevistoDetail = async (root, id) => {
 
   main.innerHTML = `
     <a class="btn btn--ghost btn--sm" href="#/previstos" style="align-self:flex-start">← VOLVER A AGENDA</a>
-    <div class="card" id="hero">
-      <div class="card__body" style="display:flex;gap:var(--space-2);align-items:center">
-        <span class="spinner"></span><span class="dim">Cargando mision...</span>
-      </div>
-    </div>
+    <div id="hero">${skeletonDetail()}</div>
     <div id="tel-grid"></div>
     <div id="modulos"></div>
   `;

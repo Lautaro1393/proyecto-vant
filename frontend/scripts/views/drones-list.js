@@ -2,6 +2,7 @@ import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
 import { ESTADOS_DRON, chipForEstado, matchEstado, formatDate } from "../ui-helpers.js";
+import { skeletonCardList } from "../skeletons.js";
 
 const ESTADOS = ESTADOS_DRON;
 
@@ -53,7 +54,7 @@ export const renderDronesList = async (root) => {
     </div>
 
     <section id="list-slot" class="stack-2">
-      <div class="card"><div class="card__body" style="display:flex;gap:var(--space-2);align-items:center"><span class="spinner"></span><span class="dim">Cargando flota...</span></div></div>
+      ${skeletonCardList(4)}
     </section>
   `;
 

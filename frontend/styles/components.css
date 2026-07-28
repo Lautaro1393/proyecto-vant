@@ -817,3 +817,73 @@
   font-size: 12px;
   border: 1px dashed var(--outline-variant);
 }
+
+/* ============================================================
+   SKELETON — placeholders con animacion shimmer
+   Reemplazan el spinner en listas/detalles mientras se cargan
+   catalogos. Aspecto placeholder consistente con la UI real
+   (mismas dimensiones, sin "flash" de contenido vacio).
+   ============================================================ */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    var(--surface-high) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 2px;
+  display: block;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton--line { height: 12px; margin: 6px 0; }
+.skeleton--line--thin   { height: 8px;  }
+.skeleton--line--thick  { height: 16px; }
+.skeleton--line--title  { height: 22px; width: 60%; margin-bottom: 12px; }
+.skeleton--circle { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton--avatar { width: 64px; height: 64px; flex-shrink: 0; }
+.skeleton--thumb  { width: 64px; height: 64px; flex-shrink: 0; }
+.skeleton--hero   {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 4 / 3;
+  margin: 0 auto var(--space-2);
+}
+.skeleton--stat {
+  height: 28px;
+  width: 80px;
+  margin-bottom: 4px;
+}
+.skeleton--chip {
+  display: inline-block;
+  height: 18px;
+  width: 80px;
+  border-radius: 0;
+}
+
+/* Tarjeta entera con padding y border del card, contenido 100% skeleton */
+.skeleton-card {
+  border: var(--border-1);
+  background: var(--surface-low);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.skeleton-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+.skeleton-card__body {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+.skeleton-card__body__text { flex: 1 1 auto; min-width: 0; }

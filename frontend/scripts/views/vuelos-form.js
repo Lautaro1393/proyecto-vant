@@ -2,6 +2,7 @@ import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
 import { createWizard } from "../vuelos-wizard.js";
+import { skeletonForm } from "../skeletons.js";
 
 const safe = async (fn, fb = null) => { try { return await fn(); } catch (e) { console.error(e); return fb; } };
 
@@ -31,11 +32,7 @@ export const renderVuelosForm = async (root, opts = {}) => {
   const main = bindShell(root, user);
   main.innerHTML = `
     <a class="btn btn--ghost btn--sm" href="#/vuelos" style="align-self:flex-start">← CANCELAR</a>
-    <div id="wiz-host" style="min-height:200px">
-      <div class="card"><div class="card__body" style="display:flex;gap:var(--space-2);align-items:center">
-        <span class="spinner"></span><span class="dim">Cargando catalogos...</span>
-      </div></div>
-    </div>
+    <div id="wiz-host" style="min-height:200px">${skeletonForm()}</div>
   `;
 
   const [drones, baterias, pilotos, previstos, vueloExistente] = await Promise.all([

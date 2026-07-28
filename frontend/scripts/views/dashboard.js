@@ -1,6 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { chipForEstado, segBar, formatDate } from "../ui-helpers.js";
+import { skeletonStat, skeletonListRows } from "../skeletons.js";
 
 export const renderDashboard = async (root) => {
   const user = getUser();
@@ -21,7 +22,7 @@ export const renderDashboard = async (root) => {
     </header>
 
     <section id="stats-slot" class="stats">
-      ${Array.from({ length: 4 }, () => `<div class="stats__cell"><span class="spinner"></span></div>`).join("")}
+      ${skeletonStat()}${skeletonStat()}${skeletonStat()}${skeletonStat()}
     </section>
 
     <div class="grid-2 mt-3">
@@ -31,7 +32,7 @@ export const renderDashboard = async (root) => {
           <span class="card__header-id">MOD-01</span>
         </header>
         <div class="card__body" id="fleet-slot">
-          <span class="spinner"></span>
+          ${skeletonListRows(3)}
         </div>
       </article>
 
@@ -41,7 +42,7 @@ export const renderDashboard = async (root) => {
           <span class="card__header-id">MOD-02</span>
         </header>
         <div class="card__body" id="recent-flights-slot">
-          <span class="spinner"></span>
+          ${skeletonListRows(3)}
         </div>
       </article>
     </div>
@@ -53,7 +54,7 @@ export const renderDashboard = async (root) => {
           <span class="card__header-id">MOD-03</span>
         </header>
         <div class="card__body" id="mant-slot">
-          <span class="spinner"></span>
+          ${skeletonListRows(3)}
         </div>
       </article>
 
@@ -63,7 +64,7 @@ export const renderDashboard = async (root) => {
           <span class="card__header-id">MOD-04</span>
         </header>
         <div class="card__body" id="prev-slot">
-          <span class="spinner"></span>
+          ${skeletonListRows(3)}
         </div>
       </article>
     </div>
@@ -74,7 +75,7 @@ export const renderDashboard = async (root) => {
         <span class="card__header-id">MOD-05</span>
       </header>
       <div class="card__body card__body--flush" id="battery-slot">
-        <span class="spinner" style="margin:var(--space-3)"></span>
+        <div style="padding:var(--space-3)">${skeletonListRows(3)}</div>
       </div>
     </article>
   `;

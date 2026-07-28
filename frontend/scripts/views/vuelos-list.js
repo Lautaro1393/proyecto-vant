@@ -1,6 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { parseVueloIds, formatDate } from "../ui-helpers.js";
+import { skeletonCardList } from "../skeletons.js";
 
 const climaChip = (clima) => {
   const c = (clima || "").toLowerCase();
@@ -99,7 +100,7 @@ export const renderVuelosList = async (root) => {
     </div>
 
     <section id="list-slot" class="stack-2">
-      <div class="card"><div class="card__body" style="display:flex;gap:var(--space-2);align-items:center"><span class="spinner"></span><span class="dim">Cargando operaciones...</span></div></div>
+      ${skeletonCardList(4)}
     </section>
   `;
 

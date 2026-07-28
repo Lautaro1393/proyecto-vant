@@ -1,5 +1,6 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
+import { skeletonCardList } from "../skeletons.js";
 
 const safe = async (fn, fb = []) => { try { return await fn(); } catch (e) { console.error(e); return fb; } };
 
@@ -43,7 +44,7 @@ export const renderModelosList = async (root) => {
     </div>
 
     <section id="list-slot" class="stack-2">
-      <div class="card"><div class="card__body" style="display:flex;gap:var(--space-2);align-items:center"><span class="spinner"></span><span class="dim">Cargando catalogo...</span></div></div>
+      ${skeletonCardList(4)}
     </section>
   `;
 
