@@ -112,11 +112,22 @@ export const asociarPilotos = async (id_vuelo, ids, conn) => {
     );
 };
 
+// Incrementa ciclos de carga de una bateria. Si al incrementar llega a 3000
+// y la bateria estaba en estado "Buena", la auto-transiciona a "Desgastada".
+// No modifica "Dañada" ni "Desgastada" (idempotente para el estado).
+// El umbral 3000 esta alineado con CICLOS_MAX del frontend (vuelos-wizard.js).
+export const UMBRAL_BATERIA_DESGASTADA = 3000;
 export const incrementarCiclosBateria = async (id_bateria, conn) => {
     const runner = conn || pool;
     await runner.query(
-        'UPDATE bateria SET ciclos_de_carga = ciclos_de_carga + 1 WHERE id_bateria = ?',
-        [id_bateria]
+        `UPDATE bateria
+         SET ciclos_de_carga = ciclos_de_carga + 1,
+             estado = CASE
+                        WHEN ciclos_de_carga + 1 >= ? AND estado = 'Buena' THEN 'Desgastada'
+                        ELSE estado
+                      END
+         WHERE id_bateria = ?`,
+        [UMBRAL_BATERIA_DESGASTADA, id_bateria]
     );
 };
 

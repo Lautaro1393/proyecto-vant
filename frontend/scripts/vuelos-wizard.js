@@ -83,10 +83,11 @@ const renderFooter = (current, busy, isEdit) => {
   `;
 };
 
-const renderPickerItem = ({ id, primary, secondary, meta, thumb, selected, disabled, reason }) => {
+const renderPickerItem = ({ id, primary, secondary, meta, thumb, selected, disabled, reason, isDesgastada }) => {
   const cls = ["picker__item"];
   if (selected) cls.push("picker__item--selected");
   if (disabled) cls.push("picker__item--disabled");
+  if (isDesgastada) cls.push("picker__item--warning");
   const thumbHtml = thumb
     ? `<img class="picker__thumb" src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none'" />`
     : `<span class="picker__thumb picker__thumb--empty" aria-hidden="true"></span>`;
@@ -146,8 +147,22 @@ const renderStepDrones = ({ draft, catalogs }) => {
 
 const renderStepBaterias = ({ draft, catalogs }) => {
   const all = catalogs.baterias || [];
+  // Estados:
+  //   Buena       -> seleccionable normal
+  //   Desgastada  -> aparece con badge, al hacer click muestra confirm()
+  //   Dañada      -> bloqueada (no se puede usar en vuelo)
+  // Baterias con ciclos >= CICLOS_MAX y estado Buena se filtran para
+  // mantener consistencia con la auto-transicion (Fase 2). Si ya estan
+  // seleccionadas en draft, siguen apareciendo (caso edit).
   const items = all
     .filter((b) => {
+      const estado = (b.estado || "").toLowerCase();
+      // Distinguir Dañada de Desgastada: "dañ" vs "desgast"
+      const esDaniada = estado.includes("dañ");
+      if (esDaniada) {
+        const yaSel = draft.baterias.includes(Number(b.id_bateria));
+        return yaSel; // aparece solo si ya estaba elegida
+      }
       const ciclos = Number(b.ciclos_de_carga || 0);
       const ok = ciclos < CICLOS_MAX;
       const yaSel = draft.baterias.includes(Number(b.id_bateria));
@@ -157,15 +172,34 @@ const renderStepBaterias = ({ draft, catalogs }) => {
       const sel = draft.baterias.includes(Number(b.id_bateria));
       const ciclos = Number(b.ciclos_de_carga || 0);
       const ok = ciclos < CICLOS_MAX;
+      const estadoNorm = (b.estado || "").toLowerCase();
+      const esDesgastada = estadoNorm.includes("desgast");
+      const esDaniada = estadoNorm.includes("dañ");
+      // Para Dañada, forzar disabled=true (no se puede elegir)
+      const disabled = esDaniada || (!ok && !sel);
+      const reason = esDaniada
+        ? `Bateria Dañada: requiere reparacion antes de usar`
+        : (!ok ? `Bateria con ${ciclos} ciclos (>= ${CICLOS_MAX})` : "");
+      // El meta se enriquece con badge segun estado
+      const metaHtml = esDaniada
+        ? `<span class="chip chip--alert" style="margin-left:var(--space-1)">DAÑADA</span>`
+        : esDesgastada
+        ? `<span class="chip chip--caution" style="margin-left:var(--space-1)">DESGASTADA</span>`
+        : "";
+      const metaConcat = metaHtml
+        ? `${b.estado || "—"}${metaHtml}`
+        : (b.estado || "—");
       return renderPickerItem({
         id: b.id_bateria,
         primary: b.numero_de_serie || `Bat #${b.id_bateria}`,
         secondary: `${b.capacidad || "?"} mAh · ${b.voltage || "?"}V · ${ciclos} ciclos`,
-        meta: b.estado || "—",
+        meta: metaConcat,
         thumb: b.imagen ? `/uploads/${b.imagen}` : null,
         selected: sel,
-        disabled: !ok && !sel,
-        reason: !ok ? `Bateria con ${ciclos} ciclos (>= ${CICLOS_MAX})` : "",
+        disabled,
+        reason,
+        // Atributo custom para que el handler sepa si es desgastada
+        isDesgastada: esDesgastada,
       });
     });
   return `
@@ -176,7 +210,7 @@ const renderStepBaterias = ({ draft, catalogs }) => {
       </header>
       <div class="card__body">
         <div class="row between mb-2">
-          <p class="dim text-sm">Multi-select · baterias con menos de ${CICLOS_MAX} ciclos</p>
+          <p class="dim text-sm">Multi-select · baterias Buenas. Desgastadas requieren confirmacion. Dañadas bloqueadas.</p>
           <span class="picker__count" id="wiz-baterias-count">${draft.baterias.length} seleccionadas</span>
         </div>
         ${items.length
@@ -426,9 +460,22 @@ const bindStepPicker = ({ root, key, wiz }) => {
   items.forEach((item) => {
     if (item.classList.contains("picker__item--disabled")) return;
     const id = Number(item.dataset.id);
+    const isWarning = item.classList.contains("picker__item--warning");
+    const label = item.querySelector(".picker__primary")?.textContent || `item #${id}`;
     item.addEventListener("click", () => {
       const current = wiz.getDraft()[key].slice();
       const i = current.indexOf(id);
+      // Si esta seleccionando (no des-seleccionando) y es una bateria
+      // desgastada, pedir confirmacion explicita. Las Dañadas ya
+      // estan bloqueadas via CSS disabled, asi que este codigo solo
+      // corre para Desgastada.
+      if (i < 0 && isWarning) {
+        const ok = window.confirm(
+          `La bateria ${label} esta DESGASTADA.\n\n` +
+          `Su uso reduce la confiabilidad del vuelo. Esta seguro de incluirla en este vuelo?`
+        );
+        if (!ok) return;
+      }
       if (i >= 0) current.splice(i, 1);
       else current.push(id);
       wiz.setDraft({ [key]: current });

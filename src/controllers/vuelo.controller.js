@@ -81,6 +81,19 @@ export const crearVuelo = async (req, res) => {
         for (const id_bateria of baterias) {
             await model.incrementarCiclosBateria(id_bateria, conn);
         }
+        // Auditoria: ver si alguna bateria seleccionada quedo Desgastada
+        // despues de este vuelo. La confirmacion la hace el frontend via
+        // popup; el backend solo loggea para que quede registro.
+        const [bateriasPost] = await conn.query(
+            `SELECT id_bateria, numero_de_serie, estado, ciclos_de_carga
+             FROM bateria WHERE id_bateria IN (?)`,
+            [baterias]
+        );
+        const desgastadas = bateriasPost.filter(b => (b.estado || "").toLowerCase().includes("desgast"));
+        if (desgastadas.length > 0) {
+            const tags = desgastadas.map(b => `#${b.id_bateria}(${b.numero_de_serie},${b.ciclos_de_carga}cl)`).join(", ");
+            console.warn(`[POST] Vuelo ${id_vuelo} uso ${desgastadas.length} bateria(s) DESGASTADA(S) con confirmacion del admin: ${tags}`);
+        }
         for (const id_dron of drones) {
             await model.sumarHorasDron(id_dron, minutos, conn);
         }
@@ -147,6 +160,19 @@ export const actualizarVuelo = async (req, res) => {
         }
 
         await model.reemplazarPivotes(id, drones, baterias, pilotos, conn);
+
+        // Misma auditoria que en POST: si el admin edita un vuelo y queda
+        // con baterias desgastadas, lo loggeamos.
+        const [bateriasPutPost] = await conn.query(
+            `SELECT id_bateria, numero_de_serie, estado, ciclos_de_carga
+             FROM bateria WHERE id_bateria IN (?)`,
+            [baterias]
+        );
+        const desgastadasPut = bateriasPutPost.filter(b => (b.estado || "").toLowerCase().includes("desgast"));
+        if (desgastadasPut.length > 0) {
+            const tags = desgastadasPut.map(b => `#${b.id_bateria}(${b.numero_de_serie},${b.ciclos_de_carga}cl)`).join(", ");
+            console.warn(`[PUT] Vuelo ${id} quedo con ${desgastadasPut.length} bateria(s) DESGASTADA(S): ${tags}`);
+        }
 
         await conn.commit();
         console.log(`[PUT] Vuelo ID ${id} actualizado. Pivotes reemplazados (acumuladores NO tocados).`);

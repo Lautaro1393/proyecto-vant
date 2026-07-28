@@ -770,6 +770,18 @@
   background: var(--surface-low);
 }
 .picker__item--disabled:hover { background: var(--surface-low); border-color: var(--outline-variant); }
+.picker__item--warning {
+  border-color: #c4a04a;
+  background: color-mix(in srgb, #c4a04a 6%, var(--surface));
+}
+.picker__item--warning:hover {
+  background: color-mix(in srgb, #c4a04a 12%, var(--surface));
+  border-color: #c4a04a;
+}
+.picker__item--warning.picker__item--selected {
+  background: color-mix(in srgb, #c4a04a 18%, var(--surface));
+  border-color: #c4a04a;
+}
 .picker__check {
   width: 20px;
   height: 20px;
