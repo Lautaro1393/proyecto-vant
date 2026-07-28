@@ -732,6 +732,26 @@
   border: 1px solid var(--outline-variant);
   background: var(--surface);
   cursor: pointer;
+}
+.picker__thumb {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-lowest);
+}
+.picker__thumb--empty {
+  display: block;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0,
+    transparent 8px,
+    color-mix(in srgb, var(--primary) 6%, transparent) 8px,
+    color-mix(in srgb, var(--primary) 6%, transparent) 10px
+  );
+  border: 1px dashed var(--outline-variant);
+}
   text-align: left;
   width: 100%;
   font: inherit;

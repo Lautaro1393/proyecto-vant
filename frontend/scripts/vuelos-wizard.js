@@ -83,12 +83,16 @@ const renderFooter = (current, busy, isEdit) => {
   `;
 };
 
-const renderPickerItem = ({ id, primary, secondary, meta, selected, disabled, reason }) => {
+const renderPickerItem = ({ id, primary, secondary, meta, thumb, selected, disabled, reason }) => {
   const cls = ["picker__item"];
   if (selected) cls.push("picker__item--selected");
   if (disabled) cls.push("picker__item--disabled");
+  const thumbHtml = thumb
+    ? `<img class="picker__thumb" src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none'" />`
+    : `<span class="picker__thumb picker__thumb--empty" aria-hidden="true"></span>`;
   return `
     <button type="button" class="${cls.join(" ")}" data-id="${id}" ${disabled ? "disabled" : ""} title="${reason || ""}">
+      ${thumbHtml}
       <span class="picker__check"></span>
       <span class="picker__body">
         <span class="picker__primary">${primary}</span>
@@ -115,6 +119,7 @@ const renderStepDrones = ({ draft, catalogs }) => {
         primary: d.matricula || `Dron #${d.id_dron}`,
         secondary: `${d.nombre_modelo || "—"} · SN ${d.numero_de_serie || "—"} · ${d.horas_vuelo_acum != null ? d.horas_vuelo_acum + " min" : "?"} acum`,
         meta: enServicio ? "EN SERVICIO" : (d.estado || "—"),
+        thumb: d.imagen ? `/uploads/${d.imagen}` : null,
         selected: sel,
         disabled: !enServicio && !sel,
         reason: !enServicio ? "Solo drones en servicio (ya seleccionado para edicion)" : "",
@@ -157,6 +162,7 @@ const renderStepBaterias = ({ draft, catalogs }) => {
         primary: b.numero_de_serie || `Bat #${b.id_bateria}`,
         secondary: `${b.capacidad || "?"} mAh · ${b.voltage || "?"}V · ${ciclos} ciclos`,
         meta: b.estado || "—",
+        thumb: b.imagen ? `/uploads/${b.imagen}` : null,
         selected: sel,
         disabled: !ok && !sel,
         reason: !ok ? `Bateria con ${ciclos} ciclos (>= ${CICLOS_MAX})` : "",
