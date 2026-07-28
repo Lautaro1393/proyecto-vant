@@ -44,15 +44,26 @@ export const renderPilotoDetail = async (root, id) => {
 
   const ini = initials(piloto.nombre, piloto.apellido);
   const fullName = `${piloto.nombre || ""} ${piloto.apellido || ""}`.trim() || piloto.email || `Piloto #${piloto.id_pilotos}`;
-  const vuelosDelPiloto = vuelos.filter(v =>
-    Array.isArray(v.pilotos) && v.pilotos.map(Number).includes(Number(id))
-  ).slice(0, 5);
+  const imgSrc = piloto.imagen ? `/uploads/${piloto.imagen}` : null;
+  const vuelosDelPiloto = vuelos
+    .filter((v) => {
+      const ids = String(v.pilotos_ids || "")
+        .split(",")
+        .map((s) => Number(s.trim()))
+        .filter(Boolean);
+      return ids.includes(Number(id));
+    })
+    .slice(0, 5);
   const dronesAsignados = drones.filter(d => Number(d.piloto_id) === Number(id));
 
   main.querySelector("#hero").innerHTML = `
     <div class="card__body card__body--flush">
       <div class="drone-hero">
-        <div class="drone-hero__placeholder">
+        ${imgSrc
+          ? `<img class="drone-hero__img" src="${imgSrc}" alt="${fullName}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'" style="object-fit:cover;object-position:center top" />`
+          : ""
+        }
+        <div class="drone-hero__placeholder" ${imgSrc ? 'style="display:none"' : ""}>
           <span class="avatar avatar--xl">${ini}</span>
         </div>
       </div>

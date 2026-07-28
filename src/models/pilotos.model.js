@@ -2,12 +2,12 @@ import {pool} from '../config/database.js'
 import { formatFecha } from '../helpers/dateHelper.js';
 
 const PILOTO_SAFE_COLUMNS_BASE =
-  'id_pilotos, nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, horas_vuelo_acum, deleted_at';
+  'id_pilotos, nombre, apellido, dni, certificacion, vencimiento_cma, email, contacto, rol, horas_vuelo_acum, imagen, deleted_at';
 
 const PILOTO_SELECT = `
   SELECT p.id_pilotos, p.nombre, p.apellido, p.dni, p.certificacion,
          p.vencimiento_cma, p.email, p.contacto, p.rol,
-         p.horas_vuelo_acum, p.deleted_at,
+         p.horas_vuelo_acum, p.imagen, p.deleted_at,
          (SELECT COUNT(DISTINCT vp.vuelo_id)
             FROM vuelo_pilotos vp
             JOIN vuelo v ON v.id_vuelo = vp.vuelo_id
@@ -72,6 +72,7 @@ export const modificarPiloto = async (id, data) => {
     if (data.email !== undefined)         { fields.push("email = ?");         values.push(data.email); }
     if (data.contacto !== undefined)      { fields.push("contacto = ?");      values.push(data.contacto); }
     if (data.rol !== undefined)           { fields.push("rol = ?");           values.push(data.rol); }
+    if (data.imagen !== undefined)        { fields.push("imagen = ?");        values.push(data.imagen || null); }
     if (data.password !== undefined && data.password !== "") { fields.push("password = ?"); values.push(data.password); }
 
     if (fields.length === 0) return { affectedRows: 0, warning: "no fields to update" };

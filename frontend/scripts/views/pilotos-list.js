@@ -87,6 +87,9 @@ export const renderPilotosList = async (root) => {
     listSlot.innerHTML = filtered.map((p, idx) => {
       const ini = initials(p.nombre, p.apellido);
       const fullName = `${p.nombre || ""} ${p.apellido || ""}`.trim() || p.email || `Piloto #${p.id_pilotos}`;
+      const avatarHtml = p.imagen
+        ? `<img class="avatar avatar--sm" src="/uploads/${p.imagen}" alt="${fullName}" style="object-fit:cover" onerror="this.outerHTML='<div class=\\'avatar avatar--sm\\'>${ini}</div>'" />`
+        : `<div class="avatar avatar--sm">${ini}</div>`;
       return `
         <a class="card card--info" href="#/pilotos/${p.id_pilotos}">
           <header class="card__header">
@@ -95,7 +98,7 @@ export const renderPilotosList = async (root) => {
           </header>
           <div class="card__body">
             <div class="row mb-2" style="gap:var(--space-3);align-items:center">
-              <div class="avatar avatar--sm">${ini}</div>
+              ${avatarHtml}
               <div style="flex:1;min-width:0">
                 <div class="list__primary">${p.email || "—"}</div>
                 <div class="list__secondary">${p.contacto || "Sin contacto"}</div>

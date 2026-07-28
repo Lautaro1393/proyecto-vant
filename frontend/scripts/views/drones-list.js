@@ -85,33 +85,40 @@ export const renderDronesList = async (root) => {
       return;
     }
 
-    listSlot.innerHTML = filtered.map((d, idx) => `
-      <a class="card card--info" href="#/drones/${d.id_dron}">
-        <header class="card__header">
-          <span><span class="card__header-prefix">${String(idx + 1).padStart(2, "0")}</span> ${d.matricula || "—"}</span>
-          <span class="card__header-id">SN ${d.numero_serie || "—"}</span>
-        </header>
-        <div class="card__body">
-          <div class="row between mb-2">
-            <div>
-              <div class="list__primary">${d.nombre_modelo || "—"}</div>
-              <div class="list__secondary">${d.fabricante || ""}</div>
+    listSlot.innerHTML = filtered.map((d, idx) => {
+      const imgSrc = d.imagen ? `/uploads/${d.imagen}` : null;
+      return `
+        <a class="card card--info" href="#/drones/${d.id_dron}">
+          <header class="card__header">
+            <span><span class="card__header-prefix">${String(idx + 1).padStart(2, "0")}</span> ${d.matricula || "—"}</span>
+            <span class="card__header-id">SN ${d.numero_serie || "—"}</span>
+          </header>
+          <div class="card__body">
+            <div class="row mb-2" style="gap:var(--space-3);align-items:center">
+              ${imgSrc
+                ? `<img src="${imgSrc}" alt="${d.matricula || ""}" style="width:64px;height:64px;object-fit:cover;border:1px solid var(--outline-variant);flex-shrink:0" onerror="this.outerHTML='<div style=\\'width:64px;height:64px;flex-shrink:0;display:grid;place-items:center;background:var(--surface-lowest);border:1px solid var(--outline-variant);color:var(--outline)\\'>—</div>'" />`
+                : `<div style="width:64px;height:64px;flex-shrink:0;display:grid;place-items:center;background:var(--surface-lowest);border:1px solid var(--outline-variant);color:var(--outline)">—</div>`
+              }
+              <div style="flex:1;min-width:0">
+                <div class="list__primary">${d.nombre_modelo || "—"}</div>
+                <div class="list__secondary">${d.fabricante || ""}</div>
+              </div>
+              ${chipForEstado(d.estado)}
             </div>
-            ${chipForEstado(d.estado)}
+            <div class="row between" style="border-top:1px solid var(--outline-variant);padding-top:var(--space-2)">
+              <div class="telemetry">
+                <span class="telemetry__value">${d.horas_vuelo_acum || 0}<span class="telemetry__unit"> min</span></span>
+                <span class="telemetry__label">HORAS ACUM</span>
+              </div>
+              <div class="telemetry" style="align-items:flex-end">
+                <span class="telemetry__value dim">${formatDate(d.fecha_adquisicion)}</span>
+                <span class="telemetry__label">ADQUIRIDO</span>
+              </div>
+            </div>
           </div>
-          <div class="row between" style="border-top:1px solid var(--outline-variant);padding-top:var(--space-2)">
-            <div class="telemetry">
-              <span class="telemetry__value">${d.horas_vuelo_acum || 0}<span class="telemetry__unit"> min</span></span>
-              <span class="telemetry__label">HORAS ACUM</span>
-            </div>
-            <div class="telemetry" style="align-items:flex-end">
-              <span class="telemetry__value dim">${formatDate(d.fecha_adquisicion)}</span>
-              <span class="telemetry__label">ADQUIRIDO</span>
-            </div>
-          </div>
-        </div>
-      </a>
-    `).join("");
+        </a>
+      `;
+    }).join("");
   };
 
   q.addEventListener("input", apply);
