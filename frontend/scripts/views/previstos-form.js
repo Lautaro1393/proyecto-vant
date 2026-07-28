@@ -35,7 +35,16 @@ const validate = (f, isEdit) => {
 
 const toBackendDateTime = (local) => {
   if (!local) return null;
-  return local.replace("T", " ") + ":00";
+  // El input da un string naive (ej "2026-07-01T08:00" = 08:00 local).
+  // Lo convertimos a ISO UTC para que el roundtrip con TZ funcione:
+  //   local 08:00 ART  ->  toISOString()  ->  "2026-07-01T11:00:00.000Z"
+  //   backend formatFecha recibe ese ISO-Z, lo parsea como UTC y guarda
+  //   en MySQL DATETIME (que esta en UTC por TZ=UTC).
+  //   Al leer, viene "2026-07-01 11:00:00" y el frontend lo muestra
+  //   como 08:00 local (parseAsUTC + toLocaleString).
+  const d = new Date(local);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
 };
 
 export const renderPrevistosForm = async (root, opts = {}) => {
@@ -149,7 +158,10 @@ export const renderPrevistosForm = async (root, opts = {}) => {
     main.querySelector("#solicitante").value = existente.solicitante || "";
     main.querySelector("#previstoscol").value = existente.previstoscol || "Planificado";
   } else {
-    main.querySelector("#fecha_inicio").value = toDateTimeLocal(new Date().toISOString());
+    // Default: ahora en formato datetime-local (YYYY-MM-DDTHH:MM)
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    main.querySelector("#fecha_inicio").value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   const form = main.querySelector("#prev-form");

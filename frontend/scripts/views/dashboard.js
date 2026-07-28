@@ -1,6 +1,6 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
-import { chipForEstado, segBar, formatDate } from "../ui-helpers.js";
+import { chipForEstado, segBar, formatDate, formatDateTimeLocal } from "../ui-helpers.js";
 import { skeletonStat, skeletonListRows } from "../skeletons.js";
 
 export const renderDashboard = async (root) => {
@@ -160,7 +160,7 @@ export const renderDashboard = async (root) => {
           <a class="row between" href="#/vuelos/${v.id_vuelo}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);text-decoration:none;color:inherit">
             <div style="min-width:0;flex:1">
               <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.proposito || "Vuelo"}</div>
-              <div class="list__secondary">${formatDate(v.fecha)} · ${v.tiempo_de_vuelo || "—"}</div>
+               <div class="list__secondary">${formatDateTimeLocal(v.fecha)} · ${v.tiempo_de_vuelo || "—"}</div>
             </div>
             <span class="chip chip--safe"><span class="chip__dot"></span>${(v.estado || "REALIZADO").toUpperCase()}</span>
           </a>
@@ -210,7 +210,7 @@ export const renderDashboard = async (root) => {
           <a class="row between" href="#/mantenimientos/${m.id_mantenimiento}" style="padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);text-decoration:none;color:inherit">
             <div style="min-width:0;flex:1">
               <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.tipo || "—"}</div>
-              <div class="list__secondary">${formatDate(m.fecha)}</div>
+               <div class="list__secondary">${formatDateTimeLocal(m.fecha)}</div>
             </div>
             <span class="chip ${(m.tipo || "").toLowerCase().includes("correctivo") ? "chip--alert" : (m.tipo || "").toLowerCase().includes("preventivo") ? "chip--safe" : "chip--info"}"><span class="chip__dot"></span>${(m.tipo || "—").toUpperCase()}</span>
           </a>

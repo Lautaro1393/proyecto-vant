@@ -15,7 +15,7 @@ const defaultDraft = () => ({
   baterias: [],
   piloto_main: null,
   piloto_copiloto: null,
-  fecha: new Date().toISOString().slice(0, 10),
+  fecha: (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })(),
   tiempo_de_vuelo: "00:25:00",
   coordenadas: "",
   proposito: "",

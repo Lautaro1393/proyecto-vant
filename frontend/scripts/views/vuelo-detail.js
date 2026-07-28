@@ -1,7 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
-import { segBar, formatDate } from "../ui-helpers.js";
+import { segBar, formatDate, formatDateTimeLocal } from "../ui-helpers.js";
 import { skeletonDetail } from "../skeletons.js";
 
 const confirm = (msg) => window.confirm(msg);
@@ -58,7 +58,7 @@ export const renderVueloDetail = async (root, id) => {
       <div class="row between mb-2" style="gap:var(--space-2);align-items:flex-start">
         <div style="flex:1;min-width:0">
           <h1 class="h2" style="word-break:break-word">${vuelo.proposito || "—"}</h1>
-          <p class="dim">${formatDate(vuelo.fecha)} · ${vuelo.coordenadas || "—"}</p>
+          <p class="dim">${formatDateTimeLocal(vuelo.fecha)} · ${vuelo.coordenadas || "—"}</p>
         </div>
         <span class="chip ${estadoChip(estado)}"><span class="chip__dot"></span>${estado.toUpperCase()}</span>
       </div>
@@ -194,7 +194,7 @@ export const renderVueloDetail = async (root, id) => {
           </div>
           <div>
             <div class="list__primary">FECHA</div>
-            <div class="dim text-sm">${formatDate(vuelo.fecha)}</div>
+            <div class="dim text-sm">${formatDateTimeLocal(vuelo.fecha)}</div>
           </div>
         </div>
         <div class="row between">

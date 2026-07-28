@@ -1,7 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
-import { chipForEstado, formatDate } from "../ui-helpers.js";
+import { chipForEstado, formatDate, formatDateTimeLocal } from "../ui-helpers.js";
 import { skeletonDetail } from "../skeletons.js";
 
 const confirm = (msg) => window.confirm(msg);
@@ -130,7 +130,7 @@ export const renderDronDetail = async (root, id) => {
                 <div class="list__row" style="grid-template-columns: 1fr auto">
                   <div>
                     <div class="list__primary">${v.proposito || "Vuelo"}</div>
-                    <div class="list__secondary">${formatDate(v.fecha)} · ${v.coordenadas || "—"}</div>
+                    <div class="list__secondary">${formatDateTimeLocal(v.fecha)} · ${v.coordenadas || "—"}</div>
                   </div>
                   <span class="chip chip--info"><span class="chip__dot"></span>${v.tiempo_de_vuelo || "—"}</span>
                 </div>
@@ -153,7 +153,7 @@ export const renderDronDetail = async (root, id) => {
                 <div class="list__row" style="grid-template-columns: 1fr auto">
                   <div>
                     <div class="list__primary">${m.tipo || m.descripcion || "Mantenimiento"}</div>
-                    <div class="list__secondary">${formatDate(m.fecha)}</div>
+                    <div class="list__secondary">${formatDateTimeLocal(m.fecha)}</div>
                   </div>
                   <span class="chip chip--caution"><span class="chip__dot"></span>${m.estado || "—"}</span>
                 </div>

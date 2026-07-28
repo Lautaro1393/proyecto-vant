@@ -1,7 +1,7 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
 import { navigate } from "../router.js";
-import { formatDate } from "../ui-helpers.js";
+import { formatDate, formatDateTimeLocal } from "../ui-helpers.js";
 import { skeletonDetail } from "../skeletons.js";
 
 const confirm = (msg) => window.confirm(msg);
@@ -46,7 +46,7 @@ export const renderMantenimientoDetail = async (root, id) => {
       <div class="row between mb-2" style="gap:var(--space-2);align-items:flex-start">
         <div style="flex:1;min-width:0">
           <h1 class="h2" style="word-break:break-word">${m.tipo || "Mantenimiento"}</h1>
-          <p class="dim">${formatDate(m.fecha)}${m.dron_matricula ? " · " + m.dron_matricula : ""}</p>
+          <p class="dim">${formatDateTimeLocal(m.fecha)}${m.dron_matricula ? " · " + m.dron_matricula : ""}</p>
         </div>
         <span class="chip ${tipoChip(m.tipo)}"><span class="chip__dot"></span>${(m.tipo || "—").toUpperCase()}</span>
       </div>
@@ -96,7 +96,7 @@ export const renderMantenimientoDetail = async (root, id) => {
       <div class="card__body">
         <div class="grid-2">
           <div><span class="dim text-sm">ID</span><div>${m.id_mantenimiento}</div></div>
-          <div><span class="dim text-sm">Fecha</span><div>${formatDate(m.fecha)}</div></div>
+          <div><span class="dim text-sm">Fecha</span><div>${formatDateTimeLocal(m.fecha)}</div></div>
           <div><span class="dim text-sm">Tipo</span><div>${m.tipo || "—"}</div></div>
           <div><span class="dim text-sm">Dron ID</span><div>${m.dron_id}</div></div>
           <div><span class="dim text-sm">Bateria ID</span><div>${m.fk_bateria_id || "—"}</div></div>

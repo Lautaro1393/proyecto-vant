@@ -1,6 +1,6 @@
 import { api, getUser } from "../api.js";
 import { renderShell, bindShell } from "../ui.js";
-import { formatDate } from "../ui-helpers.js";
+import { formatDate, formatDateTimeLocal } from "../ui-helpers.js";
 import { skeletonCardList } from "../skeletons.js";
 
 const TIPOS = [
@@ -117,7 +117,7 @@ export const renderMantenimientosList = async (root) => {
         <a class="card card--info" href="#/mantenimientos/${m.id_mantenimiento}">
           <header class="card__header">
             <span><span class="card__header-prefix">${String(idx + 1).padStart(2, "0")}</span> ${m.tipo || "Mantenimiento"}</span>
-            <span class="card__header-id">${formatDate(m.fecha)}</span>
+            <span class="card__header-id">${formatDateTimeLocal(m.fecha)}</span>
           </header>
           <div class="card__body">
             <div class="list__primary" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.descripcion || "—"}</div>

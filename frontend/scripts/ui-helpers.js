@@ -72,18 +72,69 @@ export const initials = (nombre, apellido) => {
   return ((n[0] || "") + (a[0] || "")).toUpperCase();
 };
 
-export const formatDate = (iso) => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  return d.toISOString().slice(0, 10);
+// Helper: asegura que un string ISO/datetime se parsee como UTC.
+// MySQL devuelve "YYYY-MM-DD HH:MM:SS" sin TZ (asume UTC por la config
+// process.env.TZ = 'UTC' del server). Si lo parseamos directo con
+// new Date() el browser lo interpreta como local, generando un
+// desplazamiento. Anado 'Z' si no tiene TZ explicita.
+const parseAsUTC = (s) => {
+  if (!s) return null;
+  const str = String(s);
+  if (/[zZ]$|[+-]\d{2}:?\d{2}$/.test(str)) return new Date(str);
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(str)) return new Date(str.replace(" ", "T") + "Z");
+  return new Date(str);
 };
 
+// Para campos DATE (sin hora), extrae los componentes directamente
+// del string ISO para evitar el shift de TZ (ej. "2026-07-01T00:00:00Z"
+// en zona UTC-3 se mostraria como "30/06/2026" si usamos toLocaleString).
+const toLocalParts = (iso) => {
+  if (!iso) return null;
+  const s = String(iso);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return { y: +m[1], m: +m[2], d: +m[3] };
+  const d = parseAsUTC(iso);
+  if (!d || isNaN(d)) return null;
+  return { y: d.getFullYear(), m: d.getMonth() + 1, d: d.getDate() };
+};
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+// Fecha local en formato DD/MM/YYYY. Para campos DATE (sin hora) del backend.
+export const formatDate = (iso) => {
+  if (!iso) return "—";
+  const p = toLocalParts(iso);
+  if (!p) return iso;
+  return `${pad2(p.d)}/${pad2(p.m)}/${p.y}`;
+};
+
+// Fecha local en formato YYYY-MM-DD para popular <input type="date">.
+// Devuelve la fecha LOCAL (no UTC) para mantener consistencia con formatDate.
 export const formatDateInput = (iso) => {
   if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d)) return "";
-  return d.toISOString().slice(0, 10);
+  const p = toLocalParts(iso);
+  if (!p) return "";
+  return `${p.y}-${pad2(p.m)}-${pad2(p.d)}`;
+};
+
+// Fecha + hora local en formato DD/MM/YYYY HH:MM. Para campos DATETIME.
+export const formatDateTimeLocal = (iso) => {
+  if (!iso) return "—";
+  const d = parseAsUTC(iso);
+  if (!d || isNaN(d)) return iso;
+  return d.toLocaleString("es-AR", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  });
+};
+
+// Solo hora local HH:MM. Para campos TIME o DATETIME cuando solo
+// importa la hora del momento.
+export const formatTimeLocal = (iso) => {
+  if (!iso) return "—";
+  const d = parseAsUTC(iso);
+  if (!d || isNaN(d)) return iso;
+  return d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 };
 
 export const parseVueloIds = (csv) => {
