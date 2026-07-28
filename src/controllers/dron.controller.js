@@ -98,6 +98,19 @@ export const actualizarDron = async (req, res) => {
         return res.status(400).json({ error: `Estado invalido. Valores permitidos: ${ESTADOS_VALIDOS.join(', ')}` });
     }
 
+    // Rechazar transicion al mismo estado: no tiene sentido setear
+    // "En Mantenimiento" cuando ya esta "En Mantenimiento". Es lo que
+    // pedia el usuario: si ya esta en mantenimiento, que no se pueda
+    // pasar a mantenimiento de nuevo.
+    if (estado) {
+        const actual = await model.getDronById(id);
+        if (actual && actual.estado === estado) {
+            return res.status(400).json({
+                error: `El dron ya esta en estado "${estado}". No se permite la transicion al mismo estado.`
+            });
+        }
+    }
+
     // Si multer proceso un archivo, tenemos req.file con el nombre
     const imagen = req.file ? req.file.filename : undefined;
 

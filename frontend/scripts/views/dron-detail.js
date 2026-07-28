@@ -175,26 +175,52 @@ export const renderDronDetail = async (root, id) => {
       </article>
     ` : ""}
 
-    ${isAdmin ? `
+    ${isAdmin ? (() => {
+      const estadoNorm = (dron.estado || "").toLowerCase();
+      const enServicio       = estadoNorm.includes("servicio") && !estadoNorm.includes("mantenimiento") && !estadoNorm.includes("fuera");
+      const enMantenimiento  = estadoNorm.includes("mantenimiento");
+      const fueraDeServicio  = estadoNorm.includes("fuera");
+      // Las acciones de cambio de estado dependen del estado actual.
+      // No se permite la transicion al mismo estado (no tiene sentido).
+      // En Mantenimiento: solo se puede pasar a En Servicio o Fuera de Servicio.
+      // Fuera de Servicio: solo se puede pasar a En Servicio o En Mantenimiento.
+      // En Servicio: se puede pasar a En Mantenimiento o Fuera de Servicio.
+      const botones = [];
+      botones.push(`<a class="btn btn--secondary" href="#/drones/${id}/edit">EDITAR DRON</a>`);
+      if (enServicio) {
+        botones.push(`<button class="btn btn--secondary" data-estado="En Mantenimiento">PASAR A MANTENIMIENTO</button>`);
+        botones.push(`<button class="btn btn--secondary" data-estado="Fuera de Servicio">FUERA DE SERVICIO</button>`);
+      } else if (enMantenimiento) {
+        botones.push(`<button class="btn btn--secondary" data-estado="En Servicio">VOLVER A SERVICIO</button>`);
+        botones.push(`<button class="btn btn--secondary" data-estado="Fuera de Servicio">FUERA DE SERVICIO</button>`);
+      } else if (fueraDeServicio) {
+        botones.push(`<button class="btn btn--secondary" data-estado="En Servicio">VOLVER A SERVICIO</button>`);
+        botones.push(`<button class="btn btn--secondary" data-estado="En Mantenimiento">PASAR A MANTENIMIENTO</button>`);
+      }
+      botones.push(`<button class="btn btn--danger" id="btn-delete">DAR DE BAJA (SOFT DELETE)</button>`);
+      return `
       <article class="card mt-3 card--alert">
         <header class="card__header">
           <span><span class="card__header-prefix">10</span> ACCIONES</span>
           <span class="card__header-id">ADMIN</span>
         </header>
         <div class="card__body" style="display:flex;flex-direction:column;gap:var(--space-2)">
-          <a class="btn btn--secondary" href="#/drones/${id}/edit">EDITAR DRON</a>
-          <button class="btn btn--secondary" id="btn-mant">PASAR A MANTENIMIENTO</button>
-          <button class="btn btn--danger" id="btn-delete">DAR DE BAJA (SOFT DELETE)</button>
+          ${botones.join("")}
         </div>
       </article>
-    ` : ""}
+      `;
+    })() : ""}
   `;
 
   if (isAdmin) {
-    const btnMant = main.querySelector("#btn-mant");
-    const btnDel  = main.querySelector("#btn-delete");
-    if (btnMant) btnMant.addEventListener("click", () => cambiarEstado(id, "En Mantenimiento", "ENVIAR A MANTENIMIENTO?"));
-    if (btnDel)  btnDel.addEventListener("click",  () => borrarDron(id));
+    main.querySelectorAll("[data-estado]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const estado = btn.dataset.estado;
+        cambiarEstado(id, estado, `CAMBIAR ESTADO A "${estado.toUpperCase()}"?`);
+      });
+    });
+    const btnDel = main.querySelector("#btn-delete");
+    if (btnDel) btnDel.addEventListener("click", () => borrarDron(id));
   }
 };
 
