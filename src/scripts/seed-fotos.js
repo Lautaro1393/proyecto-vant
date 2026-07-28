@@ -46,14 +46,23 @@ const run = async () => {
         'matrice 30t':          'matrice 30t.jpeg',
         'matrice 300 rtk':      'matrice 300 rtk.jpeg',
         'air 2s':               'DJI Air 2s.jpeg',
-        'mavic 3 enterprise':   'mavic 3t.jpeg',
+        'mavic 3 enterprise':   'Mavic 3 enterprise.jpeg',
         'anafi usa':            'Parrot Anafi USA.jpeg',
     };
 
+    // Una imagen se considera "valida" si existe Y es > 1KB (los placeholders
+    // de pruebas anteriores son PNGs de 1x1 o 2x2 de 69-77 bytes).
+    const MIN_VALID_BYTES = 1024;
     const resolveImage = (imgField) => {
         if (!imgField) return false;
         const localPath = join(UPLOADS_DIR, imgField);
-        return existsSync(localPath);
+        if (!existsSync(localPath)) return false;
+        try {
+            const { statSync } = require('node:fs');
+            return statSync(localPath).size >= MIN_VALID_BYTES;
+        } catch {
+            return false;
+        }
     };
 
     const droneUpdates = [];
