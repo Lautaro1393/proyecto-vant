@@ -41,7 +41,8 @@ const ICONS = {
   tag:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
   palette:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>',
   logout:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
-  menu:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
+  menu:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y1="6"/><line x1="3" y1="12" x2="21" y1="12"/><line x1="3" y1="18" x2="21" y1="18"/></svg>',
+  search:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
 };
 
 export const icon = (name) => ICONS[name] || "";
@@ -64,6 +65,7 @@ export const renderShell = ({ titlePrefix, title, id, user, onLogout, headerActi
       <div class="app__actions">
         ${headerActions}
         ${user?.rol ? `<span class="chip chip--olive" title="${user.rol}"><span class="chip__dot"></span>${user.rol.toUpperCase()}</span>` : ""}
+        <button class="btn btn--ghost btn--icon" id="btn-search" title="Buscar (Cmd+K o /)">${icon("search")}</button>
         <button class="btn btn--ghost btn--icon" id="btn-theme" title="Tema: ${currentTheme.label} (click para cambiar)">${icon("palette")}</button>
         <button class="btn btn--ghost btn--icon" id="btn-logout" title="Logout">${icon("logout")}</button>
       </div>
