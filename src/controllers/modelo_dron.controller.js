@@ -10,6 +10,20 @@ export const listarModelos = async (req, res) => {
     }
 };
 
+export const getModeloById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const modelo = await model.getModeloById(id);
+        if (!modelo) {
+            return res.status(404).json({ error: 'Modelo no encontrado' });
+        }
+        res.json(modelo);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener el modelo' });
+    }
+};
+
 export const crearModelo = async (req, res) => {
     try {
         const { modelo, fabricante } = req.body;

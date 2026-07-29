@@ -7,6 +7,12 @@ export const getModelos = async () => {
     return rows;
 };
 
+// OBTENER UNO POR ID (GET /:id)
+export const getModeloById = async (id) => {
+    const [rows] = await pool.query('SELECT * FROM modelo_dron WHERE id_modelo_dron = ?', [id]);
+    return rows[0] || null;
+};
+
 // CREAR (POST)
 export const createModelo = async (data) => {
     const { modelo, fabricante } = data;
