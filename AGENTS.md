@@ -40,8 +40,16 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 2. Copiar `.env` desde la PC original (o armar uno nuevo con `.env.example` como guia)
 3. `npm.cmd install` (o `pnpm install` si hay `pnpm-lock.yaml`)
 4. `node src/scripts/migrate-vuelo.js` (idempotente, aplica solo lo que falte)
-5. `npm run dev`
-6. Smoke test: `node src/scripts/test-db.js` (debe listar 10 tablas)
+5. `npm run snapshot` (genera `frontend/assets/data/landing-snapshot.json` para el fallback de la landing)
+6. `npm run dev`
+7. Smoke test: `node src/scripts/test-db.js` (debe listar 10 tablas)
+
+## Landing page + snapshot offline
+- La landing (`/`) es publica y no requiere auth. Lee de `GET /api/public/landing`.
+- Si la API falla, el frontend cae a `frontend/assets/data/landing-snapshot.json` (pre-generado) y muestra chip amarillo "DATOS EN CACHE".
+- El snapshot se regenera con `npm run snapshot` (consulta la BD y escribe el JSON).
+- En Railway, agregar `npm run snapshot` como **preDeployCommand** para que se regenere antes de cada deploy.
+- El archivo esta en `.gitignore` — no se commitea, siempre se regenera.
 
 ## Remote / Auth
 - **Remote URL**: SSH (`git@github.com:Lautaro1393/proyecto-vant.git`) — el push/pull NO requiere PAT

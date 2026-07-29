@@ -43,6 +43,11 @@ El motor de base de datos relacional MySQL opera con las siguientes entidades:
 ### Auth Module
 * `POST /auth/login` -> Autenticación pública de usuarios.
 
+### Public Module (Landing, sin auth)
+* `GET /api/public/landing` -> Stats agregados + top 3 drones (por horas) + top 3 pilotos (por horas). Datos seguros unicamente (sin emails, contactos, passwords). Usado por la landing page publica (`/`).
+  - Respuesta: `{ stats: { total_drones, total_pilotos, total_vuelos, total_horas_min }, top_drones: [...], top_pilotos: [...] }`
+  - Si la BD no responde, el frontend cae automaticamente a `frontend/assets/data/landing-snapshot.json` (pre-generado en deploy).
+
 ### Pilotos Module (Protegidos por Token)
 * `GET /api/pilotos` -> Lista todos los pilotos.
 * `GET /api/pilotos/search?nombre=...` -> Búsqueda parcial (`LIKE`).
@@ -72,6 +77,24 @@ El motor de base de datos relacional MySQL opera con las siguientes entidades:
 * `POST /api/previstos` -> Crea una nueva planificación de misión en agenda.
 * `PUT /api/previstos/:id` -> Controlador `actualizarPrevisto`. Modificación de agenda con formateo de fechas ISO a MySQL datetime.
 * `DELETE /api/previstos/:id` -> Controlador `borrarPrevisto`. Ejecuta un **Soft Delete** inyectando la fecha actual en `deleted_at`.
+
+## 6.1. Modo degradado (snapshot offline)
+
+La landing page (`/`) es la unica vista publica. Para garantizar que el visitante siempre vea informacion del sistema (aun cuando la BD no responda), implementamos un mecanismo de **fallback snapshot** de 2 niveles:
+
+1. **Nivel 1 (live)**: El frontend hace `GET /api/public/landing` con headers sin token.
+2. **Nivel 2 (snapshot)**: Si la API falla, hace `fetch('/assets/data/landing-snapshot.json')` y usa el JSON pre-generado.
+
+**Generacion del snapshot**: el script `src/scripts/generate-landing-snapshot.js` consulta la BD (mismas queries que el endpoint live) y escribe `frontend/assets/data/landing-snapshot.json`. Se corre con `npm run snapshot`.
+
+**Deploy**: en Railway, agregar como `preDeployCommand: npm run snapshot`. Asi cada deploy regenera el snapshot con datos frescos.
+
+**Visualmente**, cuando se usa el snapshot el frontend muestra un chip amarillo `DATOS EN CACHE · DD/MM/YYYY HH:MM` arriba a la derecha (con animacion pulse sutil). Si la API y el snapshot fallan, se renderiza un error state con boton "Reintentar".
+
+**Limitaciones**:
+- Solo aplica a la landing. Login y resto de la app siguen requiriendo DB.
+- Los datos del snapshot son una foto del momento del deploy. Si entra un dron nuevo, no aparece en la landing hasta el proximo deploy.
+- El archivo esta gitignored. En CI/deploy se regenera siempre.
 
 ## 7. Active Roadmap & Context
 Con la **Etapa 1 (Ciclo completo de Previstos)** finalizada con éxito, el foco de desarrollo actual se desplaza a la **Etapa 2: El Núcleo Operativo**. El objetivo inmediato es diseñar el módulo de **Vuelos Reales** y sus correspondientes controladores para las tablas intermedias (`vuelo_drones`, `vuelo_baterias`, `vuelo_pilotos`), lo que permitirá consolidar horas operativas reales y automatizar la sumatoria de ciclos de carga en las baterías en producción.

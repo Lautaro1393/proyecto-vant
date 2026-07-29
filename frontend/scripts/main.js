@@ -2,6 +2,7 @@ import { route, start, navigate } from "./router.js";
 import { isLoggedIn } from "./auth.js";
 import { getTheme, setTheme } from "./ui.js";
 import { bindGlobalSearch } from "./search.js";
+import { renderLanding } from "./views/landing.js";
 import { renderLogin } from "./views/login.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderDronesList } from "./views/drones-list.js";
@@ -31,7 +32,7 @@ const requireAuth = async (handler) => {
 };
 
 route("/login",     () => renderLogin(document.getElementById("root")));
-route("/",          () => { navigate("/dashboard"); return () => {}; });
+route("/",          () => renderLanding(document.getElementById("root")));
 route("/dashboard", () => requireAuth(() => renderDashboard(document.getElementById("root"))));
 
 route("/drones",          () => requireAuth(() => renderDronesList(document.getElementById("root"))));
@@ -65,4 +66,4 @@ route("/modelos/:id/edit", ({ params }) => requireAuth(() => renderModelosForm(d
 
 setTheme(getTheme());
 bindGlobalSearch();
-start(isLoggedIn() ? "/dashboard" : "/login");
+start(isLoggedIn() ? "/dashboard" : "/");

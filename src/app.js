@@ -11,6 +11,7 @@ import bateriaRouter from '../src/routes/bateria.routes.js'
 import mantenimientoRouter from '../src/routes/mantenimiento.routes.js'
 import previstosRouter from '../src/routes/previstos.routes.js'
 import vuelosRouter from '../src/routes/vuelo.routes.js'
+import publicRouter from '../src/routes/public.routes.js'
 
 
 
@@ -23,6 +24,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/auth", authRouter)
+app.use("/api/public", publicRouter)
 app.use("/api", pilotosRouter) // le digo que use ese modulo agregandole un prefijo "/api"
 app.use("/api", dronesRouter)
 app.use("/api", modeloRouter)

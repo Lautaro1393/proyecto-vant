@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "echo \" -- Hola Bienvenido al DEV de la aplicacion VANT -- \" && nodemon src/app.js",
+    "snapshot": "node src/scripts/generate-landing-snapshot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
