@@ -43,25 +43,21 @@ const kpiCard = (label, value) => `
 `;
 
 const dronCard = (d, idx) => {
-  const initials = (d.matricula || "?").replace(/[^A-Z0-9]/gi, "").slice(0, 2).toUpperCase();
+  const initials = (d.nombre_modelo || "?").replace(/[^A-Z0-9]/gi, "").slice(0, 2).toUpperCase();
   return `
     <div class="feature-card">
       <div class="feature-card__rank">${String(idx + 1).padStart(2, "0")}</div>
       <div class="feature-card__photo">
         ${d.imagen
-          ? `<img src="/uploads/${escape(d.imagen)}" alt="${escape(d.matricula)}" loading="lazy" />`
+          ? `<img src="/uploads/${escape(d.imagen)}" alt="${escape(d.nombre_modelo || d.matricula)}" loading="lazy" />`
           : `<div class="feature-card__photo-placeholder">${escape(initials)}</div>`
         }
       </div>
       <div class="feature-card__body">
-        <h3 class="feature-card__name">${escape(d.matricula || "—")}</h3>
-        <p class="feature-card__meta">${escape(d.nombre_modelo || "—")} · ${escape(d.fabricante || "—")}</p>
+        <h3 class="feature-card__name">${escape(d.nombre_modelo || "—")}</h3>
       </div>
       <div class="feature-card__footer">
         <span class="feature-card__hours">${formatHours(d.horas_vuelo_acum)}<small>h vuelo</small></span>
-        <span class="chip chip--${d.estado === "En Servicio" ? "safe" : d.estado === "En Mantenimiento" ? "alert" : "dim"}">
-          <span class="chip__dot"></span>${escape(d.estado || "—")}
-        </span>
       </div>
     </div>
   `;
@@ -69,8 +65,6 @@ const dronCard = (d, idx) => {
 
 const pilotoCard = (p, idx) => {
   const initials = ((p.nombre?.[0] || "") + (p.apellido?.[0] || "")).toUpperCase() || "?";
-  const cmaVence = p.vencimiento_cma ? new Date(p.vencimiento_cma) : null;
-  const cmaVigente = cmaVence ? cmaVence >= new Date() : false;
   return `
     <div class="feature-card">
       <div class="feature-card__rank">${String(idx + 1).padStart(2, "0")}</div>
@@ -82,13 +76,10 @@ const pilotoCard = (p, idx) => {
       </div>
       <div class="feature-card__body">
         <h3 class="feature-card__name">${escape(p.nombre || "—")} ${escape(p.apellido || "")}</h3>
-        <p class="feature-card__meta">${escape(p.certificacion || "—")} · DNI ${escape(p.dni || "—")}</p>
+        <p class="feature-card__meta">${escape(p.certificacion || "—")}</p>
       </div>
       <div class="feature-card__footer">
         <span class="feature-card__hours">${formatHours(p.horas_vuelo_acum)}<small>h vuelo</small></span>
-        <span class="chip chip--${cmaVigente ? "safe" : "alert"}">
-          <span class="chip__dot"></span>${cmaVigente ? "CMA OK" : "CMA VENCIDA"}
-        </span>
       </div>
     </div>
   `;
