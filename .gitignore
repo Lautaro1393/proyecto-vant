@@ -17,6 +17,10 @@ uploads/imagen-*
 # Snapshot estatico de la landing page (regenerado en cada deploy con `npm run snapshot`)
 /frontend/assets/data/landing-snapshot.json
 
+# Lockfiles alternativos (el proyecto usa npm)
+pnpm-lock.yaml
+yarn.lock
+
 # Archivos de logs de NPM
 npm-debug.log*
 yarn-debug.log*
