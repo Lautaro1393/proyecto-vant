@@ -5,6 +5,10 @@ export const renderLogin = (root) => {
   root.innerHTML = `
     <main class="login">
       <section class="login__panel">
+        <a class="login__back" href="#/">
+          <span class="login__back-arrow">&larr;</span>
+          <span>VOLVER AL INICIO</span>
+        </a>
         <header class="login__head">
           <div class="login__brand">
             <span class="login__brand-dot"></span>

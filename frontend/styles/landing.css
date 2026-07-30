@@ -365,3 +365,31 @@
   font-size: 13px;
   max-width: 480px;
 }
+
+/* ===== LOGIN BACK LINK ===== */
+.login__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 10px;
+  margin-bottom: var(--space-4);
+  font: var(--text-label-caps);
+  letter-spacing: 0.15em;
+  color: var(--on-surface-dim);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+.login__back:hover {
+  color: var(--on-surface);
+  border-color: var(--outline-variant);
+}
+.login__back-arrow {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform var(--t-fast);
+}
+.login__back:hover .login__back-arrow {
+  transform: translateX(-3px);
+}
