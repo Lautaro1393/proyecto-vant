@@ -5,6 +5,8 @@ Convenciones, comandos y contexto para Agentes de IA que trabajen en este repo.
 ## Quick Commands
 - `npm run dev` - Inicia el server con nodemon (puerto 3000, hot reload)
 - `npm start` - Inicia el server en modo produccion (`node src/app.js`)
+- `npm run snapshot` - Genera el JSON estatico de la landing (`frontend/assets/data/landing-snapshot.json`)
+- `npm run dump` - Exporta la BD a `db/dump.sql` (schema + data). Variantes: `npm run dump:schema`
 - `node src/scripts/<archivo>.js` - Corre un utilitario de la carpeta `src/scripts/` (ver seccion Scripts)
 
 ## Architecture
