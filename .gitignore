@@ -18,7 +18,7 @@ uploads/imagen-*
 /frontend/assets/data/landing-snapshot.json
 
 # Lockfiles alternativos (el proyecto usa npm)
-pnpm-lock.yaml
+
 yarn.lock
 
 # Archivos de logs de NPM
