@@ -169,9 +169,10 @@ export const COORDS_REGEX = /^-?\d{1,3}\.?\d*,-?\d{1,3}\.?\d*$/;
 export const segBar = (pct, total = 10) => {
   const on = Math.round((pct / 100) * total);
   const segs = Array.from({ length: total }, (_, i) => {
-    const cls = i < on
-      ? (pct < 25 ? "segbar__seg--alert" : pct < 50 ? "segbar__seg--caution" : "segbar__seg--on")
-      : "";
+    if (i >= on) return `<div class="segbar__seg"></div>`;
+    const cls = pct < 50  ? "segbar__seg--on"
+              : pct < 80  ? "segbar__seg--caution"
+              :              "segbar__seg--alert";
     return `<div class="segbar__seg ${cls}"></div>`;
   });
   return `<div class="segbar">${segs.join("")}</div>`;
