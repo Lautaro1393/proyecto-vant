@@ -8,18 +8,14 @@
 opencode.json
 /.opencode/
 
-# Imagenes de prueba subidas via el endpoint de drones (no son assets del repo)
-uploads/imagen-*
-
-# Carpeta de fuentes locales para el seed de imagenes (no se commitea)
-/uploads/dron_modelos/
-
 # Snapshot estatico de la landing page (regenerado en cada deploy con `npm run snapshot`)
 /frontend/assets/data/landing-snapshot.json
 
 # Lockfiles alternativos (el proyecto usa npm)
-
 yarn.lock
+
+# Carpeta de fuentes locales para el seed de imagenes de droneros (no se commitea)
+/uploads/thumbnails de droneros/
 
 # Archivos de logs de NPM
 npm-debug.log*
@@ -29,3 +25,5 @@ yarn-error.log*
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+cambios.md
