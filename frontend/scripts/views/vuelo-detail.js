@@ -148,7 +148,7 @@ export const renderVueloDetail = async (root, id) => {
                       <span class="telemetry__value">${ciclos}</span>
                       <span class="telemetry__label">CICLOS</span>
                     </div>
-                    <div>${segBar(pct)}</div>
+                    <div>${segBar(pct, 10, b.estado)}</div>
                     <span class="chip chip--dim"><span class="chip__dot"></span>${b.estado || "—"}</span>
                   </div>
                 `;

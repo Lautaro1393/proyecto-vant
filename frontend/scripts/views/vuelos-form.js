@@ -15,10 +15,6 @@ const showFatal = (main, msg) => {
 
 export const renderVuelosForm = async (root, opts = {}) => {
   const user = getUser();
-  if (user?.rol?.toLowerCase() !== "admin") {
-    navigate("/vuelos");
-    return;
-  }
 
   const isEdit = !!opts.id;
   const titlePrefix = isEdit ? "16" : "16";

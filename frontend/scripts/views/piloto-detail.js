@@ -50,7 +50,7 @@ export const renderPilotoDetail = async (root, id) => {
         .filter(Boolean);
       return ids.includes(Number(id));
     })
-    .slice(0, 5);
+    .slice(0, 10);
   const dronesAsignados = drones.filter(d => Number(d.piloto_id) === Number(id));
 
   main.querySelector("#hero").innerHTML = `
@@ -124,13 +124,13 @@ export const renderPilotoDetail = async (root, id) => {
           ? `<div class="card__body dim" style="text-align:center;padding:var(--space-4)">SIN VUELOS REGISTRADOS</div>`
           : `<div class="list" style="border:0">
               ${vuelosDelPiloto.map(v => `
-                <div class="list__row" style="grid-template-columns: 1fr auto">
+                <a class="list__row" href="#/vuelos/${v.id_vuelo}" style="grid-template-columns: 1fr auto; text-decoration:none; color:inherit">
                   <div>
                     <div class="list__primary">${v.proposito || "Vuelo"}</div>
                     <div class="list__secondary">${formatDateTimeLocal(v.fecha)} · ${v.coordenadas || "—"}</div>
                   </div>
                   <span class="chip chip--info"><span class="chip__dot"></span>${v.tiempo_de_vuelo || "—"}</span>
-                </div>
+                </a>
               `).join("")}
             </div>`
         }
